@@ -1,0 +1,23 @@
+{
+  "name": "flowlink",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc --noEmit",
+    "typecheck": "tsc --noEmit",
+    "test:contracts": "forge test -vvv",
+    "deploy:arc": "set -a; [ ! -f .env ] || . ./.env; set +a; forge script script/DeployFlowLink.s.sol:DeployFlowLink --rpc-url $ARC_TESTNET_RPC_URL --broadcast",
+    "smoke:arc": "tsx scripts/smoke.ts"
+  },
+  "dependencies": {
+    "@circle-fin/app-kit": "^1.7.0",
+    "dotenv": "^16.4.7",
+    "typescript": "^5.8.3",
+    "viem": "^2.31.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.29",
+    "tsx": "^4.19.4"
+  }
+}
