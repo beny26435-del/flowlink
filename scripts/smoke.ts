@@ -1,8 +1,8 @@
 import "dotenv/config";
 import { getAddress, isAddress, parseEventLogs, type Address, type Hex } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { ARC_TESTNET_RPC_URL } from "../src/arc/chain.js";
-import { flowLinkAbi } from "../src/flowlink/abi.js";
+import { ARC_TESTNET_RPC_URL } from "../src/arc/chain";
+import { flowLinkAbi } from "../src/flowlink/abi";
 import {
   createFlowLinkPublicClient,
   createFlowLinkWalletClient,
@@ -11,13 +11,13 @@ import {
   getLinkStatus,
   isPayable,
   payLink,
-} from "../src/flowlink/client.js";
+} from "../src/flowlink/client";
 import {
   buildExplorerAddressUrl,
   buildExplorerTxUrl,
   formatNativeUsdcAmount,
   parseNativeUsdcAmount,
-} from "../src/flowlink/utils.js";
+} from "../src/flowlink/utils";
 
 const shouldPay = process.argv.includes("--pay");
 const rpcUrl = process.env.ARC_TESTNET_RPC_URL ?? ARC_TESTNET_RPC_URL;

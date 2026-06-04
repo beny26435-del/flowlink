@@ -1,5 +1,5 @@
 import { formatUnits, parseUnits } from "viem";
-import { ARC_TESTNET_EXPLORER_URL } from "../arc/chain.js";
+import { ARC_TESTNET_EXPLORER_URL } from "../arc/chain";
 
 const NATIVE_USDC_DECIMALS = 18;
 

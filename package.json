@@ -4,20 +4,31 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "tsc --noEmit",
+    "dev": "next dev",
+    "build": "next build",
     "typecheck": "tsc --noEmit",
     "test:contracts": "forge test -vvv",
     "deploy:arc": "set -a; [ ! -f .env ] || . ./.env; set +a; forge script script/DeployFlowLink.s.sol:DeployFlowLink --rpc-url $ARC_TESTNET_RPC_URL --broadcast",
-    "smoke:arc": "tsx scripts/smoke.ts"
+    "deploy:arc:v2": "set -a; [ ! -f .env ] || . ./.env; set +a; forge script script/DeployFlowLinkV2.s.sol:DeployFlowLinkV2 --rpc-url $ARC_TESTNET_RPC_URL --broadcast",
+    "smoke:arc": "tsx scripts/smoke.ts",
+    "smoke:arc:v2": "tsx scripts/smoke-v2.ts"
   },
   "dependencies": {
     "@circle-fin/app-kit": "^1.7.0",
+    "@tanstack/react-query": "^5.101.0",
     "dotenv": "^16.4.7",
+    "framer-motion": "^12.40.0",
+    "next": "^16.2.7",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
     "typescript": "^5.8.3",
-    "viem": "^2.31.0"
+    "viem": "^2.31.0",
+    "wagmi": "^3.6.16"
   },
   "devDependencies": {
     "@types/node": "^22.15.29",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
     "tsx": "^4.19.4"
   }
 }

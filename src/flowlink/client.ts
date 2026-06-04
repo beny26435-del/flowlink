@@ -8,9 +8,9 @@ import {
   type PublicClient,
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { arcTestnet, ARC_TESTNET_RPC_URL } from "../arc/chain.js";
-import { flowLinkAbi } from "./abi.js";
-import type { CreateLinkInput, FlowLinkConfig, LinkStatus, PaymentLink } from "./types.js";
+import { arcTestnet, ARC_TESTNET_RPC_URL } from "../arc/chain";
+import { flowLinkAbi } from "./abi";
+import type { CreateLinkInput, FlowLinkConfig, LinkStatus, PaymentLink } from "./types";
 
 type FlowLinkWalletClient = ReturnType<typeof createFlowLinkWalletClient>;
 
