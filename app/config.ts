@@ -1,9 +1,9 @@
 import type { Address } from "viem";
 
-export const DEPLOYED_FLOWLINK_CONTRACT_ADDRESS = "0x3dBdaDEcb8817B11D3D239ffaA881bcd7084D8b7" as const;
-export const DEPLOYMENT_TX_HASH = "0x42e768b943404d2ce0c2ddaa27d1a898f0767643ad62008a91be1218d73c0fc6" as const;
+export const DEPLOYED_FLOWLINK_CONTRACT_ADDRESS = "0x531f40744d9c675dE15C0326766955F5b1cbC938" as const;
+export const DEPLOYMENT_TX_HASH = "0xd0b8d619533c1a706e660dd2fd6f06e6522ec269d6444277850942ca099b90bc" as const;
 
 export const FLOWLINK_CONTRACT_MISSING_MESSAGE = "FlowLink contract address is not configured.";
 
-export const flowLinkContractAddress = process.env.NEXT_PUBLIC_FLOWLINK_V2_CONTRACT_ADDRESS as Address | undefined;
+export const flowLinkContractAddress = process.env.NEXT_PUBLIC_FLOWLINK_V4_CONTRACT_ADDRESS as Address | undefined;
 export const hasFlowLinkContractAddress = Boolean(flowLinkContractAddress);

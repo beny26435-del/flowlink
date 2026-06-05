@@ -15,6 +15,7 @@ export function PaymentPreviewCard({
   clientName,
   invoiceNumber,
   serviceTitle,
+  publicUrl,
 }: {
   mode: PreviewMode;
   title: string;
@@ -25,6 +26,7 @@ export function PaymentPreviewCard({
   clientName?: string;
   invoiceNumber?: string;
   serviceTitle?: string;
+  publicUrl?: string;
 }) {
   const modeLabel = getModeLabel(mode);
   const previewTitle = getPreviewTitle(mode, title, serviceTitle, invoiceNumber);
@@ -32,7 +34,9 @@ export function PaymentPreviewCard({
   return (
     <motion.aside className="preview-card sticky-panel" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }}>
       <div className="preview-header">
-        <span className={mode === "group" ? "badge good pulse" : "badge warn"}>{mode === "group" ? "Group funding" : "Draft preview"}</span>
+        <span className={mode === "group" ? "badge good pulse" : "badge warn"}>
+          {mode === "group" ? "Group funding" : "Draft preview"}
+        </span>
         <span className="badge">{modeLabel}</span>
       </div>
       <span className="mock-label">{mode === "group" ? "Funding goal" : "Payment request"}</span>
@@ -71,6 +75,10 @@ export function PaymentPreviewCard({
         <div className="data-row">
           <span>Recipient</span>
           <span>{recipient ? <AddressDisplay address={recipient} /> : "0x..."}</span>
+        </div>
+        <div className="data-row">
+          <span>Public URL</span>
+          <span className="mono">{publicUrl || "/p/your-link"}</span>
         </div>
         <div className="data-row">
           <span>{mode === "invoice" ? "Due date" : "Deadline"}</span>

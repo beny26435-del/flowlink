@@ -1,4 +1,4 @@
-import type { LinkStatus } from "../../src/flowlink-v2/types";
+import type { LinkStatus } from "../../src/flowlink-v4/types";
 
 export function LinkStatusBadge({ status }: { status?: LinkStatus }) {
   if (!status) return <span className="badge">Loading</span>;

@@ -19,9 +19,9 @@ import { WalletConnectButton } from "../components/WalletConnectButton";
 import { FLOWLINK_CONTRACT_MISSING_MESSAGE, flowLinkContractAddress, hasFlowLinkContractAddress } from "../config";
 import { formatDateTime, getGroupProgress, getModeText, normalizeLinkStatus, normalizePaymentLink, type RawLink } from "../lib/link";
 import { arcTestnet } from "../../src/arc/chain";
-import { flowLinkV2Abi } from "../../src/flowlink-v2/abi";
-import { buildPaymentUrl, formatNativeUsdcAmount } from "../../src/flowlink-v2/utils";
-import type { Link, LinkMode, LinkStatus } from "../../src/flowlink-v2/types";
+import { flowLinkV4Abi } from "../../src/flowlink-v4/abi";
+import { buildPublicPayUrl, formatNativeUsdcAmount } from "../../src/flowlink-v4/utils";
+import type { Link, LinkMode, LinkStatus } from "../../src/flowlink-v4/types";
 
 type Filter = "all" | "payable" | "paid" | "cancelled" | "expired" | "payment" | "invoice" | "unlock" | "group";
 
@@ -49,18 +49,18 @@ export default function DashboardPage() {
 
   const creatorLinksRead = useReadContract({
     address: flowLinkContractAddress,
-    abi: flowLinkV2Abi,
+    abi: flowLinkV4Abi,
     functionName: "getCreatorLinks",
     args: address ? [address] : undefined,
     query: { enabled: Boolean(hasFlowLinkContractAddress && address) },
   });
 
-  const linkIds = useMemo(() => [...(creatorLinksRead.data ?? [])].reverse(), [creatorLinksRead.data]);
+  const linkIds = useMemo(() => [...((creatorLinksRead.data as bigint[] | undefined) ?? [])].reverse(), [creatorLinksRead.data]);
 
   const linksRead = useReadContracts({
     contracts: linkIds.map((linkId) => ({
       address: flowLinkContractAddress,
-      abi: flowLinkV2Abi,
+      abi: flowLinkV4Abi,
       functionName: "getLink",
       args: [linkId],
     })),
@@ -70,7 +70,7 @@ export default function DashboardPage() {
   const statusesRead = useReadContracts({
     contracts: linkIds.map((linkId) => ({
       address: flowLinkContractAddress,
-      abi: flowLinkV2Abi,
+      abi: flowLinkV4Abi,
       functionName: "getLinkStatus",
       args: [linkId],
     })),
@@ -110,6 +110,14 @@ export default function DashboardPage() {
             <Button href="/create" variant="secondary">
               Create Link
             </Button>
+            <Button href="/profile" variant="secondary">
+              Edit profile
+            </Button>
+            {address && (
+              <Button href={`/u/${address}`} variant="secondary">
+                View public profile
+              </Button>
+            )}
           </>
         }
       />
@@ -184,7 +192,8 @@ function DashboardLink({ summary, index, onChanged }: { summary: Summary; index:
   const [error, setError] = useState("");
   const { linkId, link, status } = summary;
 
-  const paymentUrl = typeof window === "undefined" ? `/pay/${linkId.toString()}` : buildPaymentUrl(window.location.origin, linkId);
+  const paymentUrl =
+    typeof window === "undefined" || !link?.slug ? `/p/${link?.slug ?? ""}` : buildPublicPayUrl(window.location.origin, link.slug);
   const canCancel =
     Boolean(flowLinkContractAddress && link && status?.active && !status.paid && address && link.creator.toLowerCase() === address.toLowerCase()) &&
     chainId === arcTestnet.id;
@@ -197,7 +206,7 @@ function DashboardLink({ summary, index, onChanged }: { summary: Summary; index:
     try {
       const txHash = await writeContractAsync({
         address: flowLinkContractAddress,
-        abi: flowLinkV2Abi,
+        abi: flowLinkV4Abi,
         functionName: "cancelLink",
         args: [linkId],
         chainId: arcTestnet.id,
@@ -228,6 +237,7 @@ function DashboardLink({ summary, index, onChanged }: { summary: Summary; index:
               <div className="status-row">
                 <LinkStatusBadge status={status} />
                 <span className="badge">{getModeText(link.mode)}</span>
+                <span className={link.listed ? "badge good" : "badge"}>{link.listed ? "Listed" : "Unlisted"}</span>
                 <span className="badge">Link #{linkId.toString()}</span>
               </div>
               <h2>{link.title}</h2>
@@ -247,7 +257,7 @@ function DashboardLink({ summary, index, onChanged }: { summary: Summary; index:
           <div className="dashboard-meta-grid">
             <DataRow label="Recipient" value={<AddressDisplay address={link.recipient} copy />} />
             <DataRow label="Deadline" value={formatDateTime(link.deadline)} />
-            <DataRow label="Pay page" value={`/pay/${linkId.toString()}`} />
+            <DataRow label="Payment page" value={`/p/${link.slug}`} />
           </div>
 
           {link.mode === 3 && (status?.cancelled || status?.expired) && !status.paid && (
@@ -255,8 +265,8 @@ function DashboardLink({ summary, index, onChanged }: { summary: Summary; index:
           )}
 
           <div className="actions">
-            <Button href={`/pay/${linkId.toString()}`} variant="secondary">
-              Open pay page
+            <Button href={`/p/${link.slug}`} variant="secondary">
+              Open payment page
             </Button>
             <CopyButton value={paymentUrl} label="Copy link" />
             {flowLinkContractAddress && <ExplorerLink kind="address" value={flowLinkContractAddress} label="Contract" />}

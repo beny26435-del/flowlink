@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { getAddress, isAddress, parseEventLogs, type Hex } from "viem";
 import { useAccount, usePublicClient, useWriteContract } from "wagmi";
@@ -16,13 +16,20 @@ import { PaymentPreviewCard, type PreviewMode } from "../components/PaymentPrevi
 import { WalletConnectButton } from "../components/WalletConnectButton";
 import { FLOWLINK_CONTRACT_MISSING_MESSAGE, flowLinkContractAddress, hasFlowLinkContractAddress } from "../config";
 import { arcTestnet } from "../../src/arc/chain";
-import { flowLinkV2Abi } from "../../src/flowlink-v2/abi";
-import { buildPaymentUrl, parseNativeUsdcAmount } from "../../src/flowlink-v2/utils";
+import { flowLinkV4Abi } from "../../src/flowlink-v4/abi";
+import { buildPublicPayUrl, generateRandomSlug, parseNativeUsdcAmount, validateSlug } from "../../src/flowlink-v4/utils";
+
+type LinkCreatedLog = {
+  args: {
+    linkId?: bigint;
+  };
+};
 
 type CreatedLink = {
   linkId: bigint;
   txHash: Hex;
   paymentUrl: string;
+  slug: string;
 };
 
 const modes: Array<{ key: PreviewMode; label: string; helper: string }> = [
@@ -47,26 +54,35 @@ export default function CreatePage() {
   const [serviceTitle, setServiceTitle] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [unlockUrl, setUnlockUrl] = useState("");
+  const [slug, setSlug] = useState(() => generateRandomSlug("payment"));
+  const [listed, setListed] = useState(true);
   const [created, setCreated] = useState<CreatedLink | null>(null);
   const [error, setError] = useState("");
 
+  useEffect(() => {
+    setSlug(generateRandomSlug(mode));
+  }, [mode]);
+
   const amountIsValid = useMemo(() => {
     try {
-      return amount.trim() ? parseNativeUsdcAmount(amount) > 0n : false;
+      const parsed = amount.trim() ? parseNativeUsdcAmount(amount) : 0n;
+      return parsed > 0n;
     } catch {
       return false;
     }
-  }, [amount]);
+  }, [amount, mode]);
 
   const deadlineText = useMemo(() => (deadline ? new Date(deadline).toLocaleString() : ""), [deadline]);
   const titleIsValid = mode === "invoice" ? Boolean(serviceTitle.trim()) : Boolean(title.trim());
   const deadlineIsValid = mode === "group" ? Boolean(deadline) : true;
+  const slugIsValid = validateSlug(slug);
   const canSubmit = Boolean(
     hasFlowLinkContractAddress &&
       titleIsValid &&
       isAddress(recipient) &&
       amountIsValid &&
       deadlineIsValid &&
+      slugIsValid &&
       isConnected &&
       chainId === arcTestnet.id,
   );
@@ -93,7 +109,7 @@ export default function CreatePage() {
 
     let parsedAmount: bigint;
     try {
-      parsedAmount = parseNativeUsdcAmount(amount);
+      parsedAmount = amount.trim() ? parseNativeUsdcAmount(amount) : 0n;
     } catch {
       setError("Enter a valid native Arc USDC amount.");
       return;
@@ -120,6 +136,11 @@ export default function CreatePage() {
       return;
     }
 
+    if (!validateSlug(slug)) {
+      setError("Use letters, numbers, hyphen, or underscore. Slugs must be 6–64 characters.");
+      return;
+    }
+
     if (!publicClient) {
       setError("Arc Testnet public client is not ready.");
       return;
@@ -128,7 +149,7 @@ export default function CreatePage() {
     try {
       const base = {
         address: flowLinkContractAddress,
-        abi: flowLinkV2Abi,
+        abi: flowLinkV4Abi,
         chainId: arcTestnet.id,
       } as const;
 
@@ -145,6 +166,8 @@ export default function CreatePage() {
                 invoiceNumber.trim(),
                 serviceTitle.trim(),
                 description.trim(),
+                slug.trim(),
+                listed,
               ],
             })
           : mode === "unlock"
@@ -159,44 +182,47 @@ export default function CreatePage() {
                   description.trim(),
                   successMessage.trim(),
                   unlockUrl.trim(),
+                  slug.trim(),
+                  listed,
                 ],
               })
             : mode === "group"
               ? await writeContractAsync({
                   ...base,
                   functionName: "createGroupLink",
-                  args: [getAddress(recipient), parsedAmount, deadlineTimestamp, title.trim(), description.trim()],
+                  args: [getAddress(recipient), parsedAmount, deadlineTimestamp, title.trim(), description.trim(), slug.trim(), listed],
                 })
-              : await writeContractAsync({
-                  ...base,
-                  functionName: "createPaymentLink",
-                  args: [getAddress(recipient), parsedAmount, deadlineTimestamp, title.trim(), description.trim()],
-                });
+                : await writeContractAsync({
+                    ...base,
+                    functionName: "createPaymentLink",
+                    args: [getAddress(recipient), parsedAmount, deadlineTimestamp, title.trim(), description.trim(), slug.trim(), listed],
+                  });
       const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
       const logs = parseEventLogs({
-        abi: flowLinkV2Abi,
+        abi: flowLinkV4Abi,
         eventName: "LinkCreated",
         logs: receipt.logs,
       });
 
-      let linkId = logs[0]?.args.linkId;
+      let linkId = (logs as LinkCreatedLog[])[0]?.args.linkId;
 
       if (!linkId) {
-        const creatorLinks = await publicClient.readContract({
+        const creatorLinks = (await publicClient.readContract({
           address: flowLinkContractAddress,
-          abi: flowLinkV2Abi,
+          abi: flowLinkV4Abi,
           functionName: "getCreatorLinks",
           args: [address],
-        });
+        })) as bigint[];
         linkId = creatorLinks[creatorLinks.length - 1];
       }
 
       if (!linkId) throw new Error("Created transaction confirmed, but link id was not found.");
 
-      const paymentUrl = buildPaymentUrl(window.location.origin, linkId);
-      setCreated({ linkId, txHash, paymentUrl });
+      const paymentUrl = buildPublicPayUrl(window.location.origin, slug);
+      setCreated({ linkId, txHash, paymentUrl, slug: slug.trim() });
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Create FlowLink failed.");
+      const message = caught instanceof Error ? caught.message : "Create FlowLink failed.";
+      setError(message.includes("SlugAlreadyTaken") ? "That payment URL is already taken. Try another one." : message);
     }
   }
 
@@ -248,6 +274,29 @@ export default function CreatePage() {
               setUnlockUrl={setUnlockUrl}
             />
 
+            <div className="field">
+              <label htmlFor="slug">Payment URL</label>
+              <div className="slug-input-row">
+                <input
+                  id="slug"
+                  value={slug}
+                  aria-invalid={Boolean(slug && !slugIsValid)}
+                  onChange={(event) => setSlug(event.target.value.trim())}
+                />
+                <Button type="button" variant="secondary" onClick={() => setSlug(generateRandomSlug(mode))}>
+                  Generate
+                </Button>
+              </div>
+              <span className="field-help">Use letters, numbers, hyphen, or underscore. 6–64 characters.</span>
+            </div>
+
+            <label className="toggle-row">
+              <input type="checkbox" checked={listed} onChange={(event) => setListed(event.target.checked)} />
+              <span>Show on my public profile</span>
+            </label>
+
+            <div className="notice">Public URL: {slugIsValid ? `/p/${slug}` : "Choose a valid payment URL"}</div>
+
             {error && <motion.div className="error" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>{error}</motion.div>}
 
             <Button type="submit" disabled={!canSubmit || isPending}>
@@ -269,7 +318,7 @@ export default function CreatePage() {
                   <div>
                     <span className="badge good pulse">Created</span>
                     <h2>FlowLink ready</h2>
-                    <p className="muted">Share this link with a payer. Native Arc USDC moves directly through the FlowLink contract.</p>
+                    <p className="muted">Share this FlowLink. Native Arc USDC moves directly through the FlowLink contract.</p>
                   </div>
                   <motion.span className="success-mark" initial={{ scale: 0.7 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 260, damping: 14 }}>
                     ✓
@@ -281,15 +330,33 @@ export default function CreatePage() {
                     <strong>{created.linkId.toString()}</strong>
                   </div>
                   <div className="data-row">
-                    <span>Payment URL</span>
-                    <Link className="mono" href={`/pay/${created.linkId.toString()}`}>
+                    <span>Public URL</span>
+                    <Link className="mono" href={`/p/${created.slug}`}>
                       {created.paymentUrl}
                     </Link>
                   </div>
+                  <details className="technical-panel compact-technical">
+                    <summary>
+                      <span>Technical details</span>
+                      <span className="technical-summary-copy">Raw numeric payment page</span>
+                    </summary>
+                    <div className="data-list technical-data-list">
+                      <div className="data-row">
+                        <span>Link ID</span>
+                        <strong>{created.linkId.toString()}</strong>
+                      </div>
+                      <div className="data-row">
+                        <span>Raw pay route</span>
+                        <Link className="mono" href={`/pay/${created.linkId.toString()}`}>
+                          /pay/{created.linkId.toString()}
+                        </Link>
+                      </div>
+                    </div>
+                  </details>
                 </div>
                 <div className="actions">
                   <CopyButton value={created.paymentUrl} label="Copy payment URL" />
-                  <Button href={`/pay/${created.linkId.toString()}`} variant="secondary">
+                  <Button href={`/p/${created.slug}`} variant="secondary">
                     Open pay page
                   </Button>
                   <ExplorerLink kind="tx" value={created.txHash} label="Arcscan tx" />
@@ -309,6 +376,7 @@ export default function CreatePage() {
           clientName={clientName}
           invoiceNumber={invoiceNumber}
           serviceTitle={serviceTitle}
+          publicUrl={slugIsValid ? `/p/${slug}` : ""}
         />
       </div>
     </PageTransition>
@@ -360,10 +428,10 @@ function ModeFields(props: {
         <Input
           id="title"
           label="Title"
-          help="Shown prominently on the payment page. Max 120 bytes onchain."
           value={props.title}
           maxLength={120}
           placeholder={props.mode === "group" ? "Team launch fund" : props.mode === "unlock" ? "Premium research pack" : "Design sprint invoice"}
+          help="Shown prominently on the payment page. Max 120 bytes onchain."
           onChange={(event) => props.setTitle(event.target.value)}
         />
       )}
@@ -391,7 +459,11 @@ function ModeFields(props: {
       <Input
         id="amount"
         label={amountLabel}
-        help={props.amount && !props.amountIsValid ? "Amount must be greater than zero." : "Native Arc USDC is sent as msg.value."}
+        help={
+          props.amount && !props.amountIsValid
+              ? "Amount must be greater than zero."
+              : "Native Arc USDC is sent as msg.value."
+        }
         value={props.amount}
         placeholder={props.mode === "group" ? "500.00" : "125.00"}
         inputMode="decimal"

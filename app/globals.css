@@ -439,6 +439,7 @@ button {
 .receipt-row {
   display: grid;
   gap: 7px;
+  min-width: 0;
 }
 
 .mock-grid,
@@ -464,6 +465,7 @@ button {
 .receipt-row span:last-child {
   color: var(--text);
   line-height: 1.35;
+  min-width: 0;
 }
 
 .amount-xl {
@@ -530,8 +532,16 @@ button {
 }
 
 .checkout-grid {
-  grid-template-columns: minmax(360px, 610px) minmax(320px, 410px);
+  grid-template-columns: minmax(0, 610px) minmax(320px, 410px);
   justify-content: center;
+}
+
+.pay-checkout-grid {
+  gap: clamp(24px, 3.4vw, 42px);
+  grid-template-columns: minmax(0, 600px) minmax(340px, 400px);
+  margin-inline: auto;
+  max-width: 1088px;
+  width: 100%;
 }
 
 .form {
@@ -564,6 +574,35 @@ button {
     box-shadow 180ms ease,
     background 180ms ease;
   width: 100%;
+}
+
+.slug-input-row {
+  align-items: stretch;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.toggle-row {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 14px;
+  color: var(--text);
+  cursor: pointer;
+  display: flex;
+  gap: 10px;
+  padding: 13px 14px;
+}
+
+.toggle-row input {
+  accent-color: var(--mint);
+  height: 18px;
+  width: 18px;
+}
+
+.compact-technical {
+  margin-top: 10px;
 }
 
 .field textarea {
@@ -876,6 +915,43 @@ button {
   padding: 24px;
 }
 
+.profile-hero {
+  align-items: center;
+  display: grid;
+  gap: clamp(22px, 4vw, 42px);
+  grid-template-columns: auto minmax(0, 1fr);
+  padding: clamp(24px, 4vw, 38px);
+}
+
+.profile-copy {
+  min-width: 0;
+}
+
+.profile-avatar {
+  background: linear-gradient(135deg, rgba(102, 242, 189, 0.2), rgba(117, 231, 255, 0.1));
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 26px;
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.32);
+  height: clamp(96px, 12vw, 136px);
+  object-fit: cover;
+  width: clamp(96px, 12vw, 136px);
+}
+
+.fallback-avatar {
+  align-items: center;
+  color: var(--mint);
+  display: inline-flex;
+  font-size: clamp(30px, 4vw, 44px);
+  font-weight: 950;
+  justify-content: center;
+}
+
+.preview-profile-avatar {
+  height: 88px;
+  margin-bottom: 18px;
+  width: 88px;
+}
+
 .preview-header,
 .receipt-header {
   align-items: center;
@@ -945,6 +1021,7 @@ button {
 
 .checkout-card {
   padding: clamp(24px, 4vw, 34px);
+  min-width: 0;
 }
 
 .checkout-amount {
@@ -985,8 +1062,10 @@ button {
 }
 
 .checkout-card .page-title {
-  font-size: clamp(34px, 4.7vw, 56px);
-  line-height: 1.02;
+  font-size: clamp(32px, 4.2vw, 52px);
+  line-height: 1.04;
+  max-width: 100%;
+  overflow-wrap: break-word;
 }
 
 .checkout-detail-grid {
@@ -999,6 +1078,23 @@ button {
   margin-top: 18px;
 }
 
+.tx-action-panel {
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 16px;
+  color: var(--muted);
+  display: grid;
+  gap: 12px;
+  line-height: 1.45;
+  margin-top: 16px;
+  padding: 14px;
+}
+
+.tx-action-link {
+  min-height: 40px;
+  width: fit-content;
+}
+
 .create-success-card {
   background:
     radial-gradient(circle at 88% 10%, rgba(102, 242, 189, 0.18), transparent 16rem),
@@ -1008,6 +1104,18 @@ button {
 
 .checkout-side-card h2 {
   font-size: 28px;
+}
+
+.checkout-side-card {
+  align-self: start;
+  max-width: 420px;
+  min-width: 0;
+  padding: clamp(22px, 2.8vw, 28px);
+  width: 100%;
+}
+
+.checkout-side-card .data-row {
+  min-width: 0;
 }
 
 .state-message {
@@ -1034,6 +1142,100 @@ button {
 
 .technical-panel {
   grid-column: 1 / -1;
+  justify-self: stretch;
+  padding: 0;
+}
+
+.technical-panel summary {
+  align-items: center;
+  cursor: pointer;
+  display: flex;
+  gap: 14px;
+  justify-content: space-between;
+  list-style: none;
+  min-height: 68px;
+  padding: 20px 22px;
+}
+
+.technical-panel summary::-webkit-details-marker {
+  display: none;
+}
+
+.technical-panel summary::after {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  color: var(--muted);
+  content: "+";
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-size: 18px;
+  font-weight: 800;
+  height: 34px;
+  justify-content: center;
+  transition:
+    background 180ms ease,
+    color 180ms ease,
+    transform 180ms ease;
+  width: 34px;
+}
+
+.technical-panel[open] summary::after {
+  background: rgba(102, 242, 189, 0.1);
+  color: var(--mint);
+  content: "-";
+  transform: rotate(180deg);
+}
+
+.technical-panel summary > span:first-child {
+  color: var(--text);
+  font-size: 18px;
+  font-weight: 850;
+}
+
+.technical-summary-copy {
+  color: var(--muted);
+  flex: 1;
+  font-size: 13px;
+  line-height: 1.4;
+  text-align: right;
+}
+
+.technical-data-list {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 0 22px 22px;
+}
+
+.hash-field {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.hash-value {
+  background: rgba(3, 7, 12, 0.46);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  display: block;
+  font-size: 12px;
+  line-height: 1.55;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  padding: 10px 12px;
+  word-break: break-all;
+}
+
+.hash-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.hash-actions .copy-button {
+  min-height: 30px;
+  padding: 0 11px;
 }
 
 .success-mark {
@@ -1136,6 +1338,18 @@ button {
   }
 }
 
+@media (max-width: 1120px) {
+  .pay-checkout-grid {
+    grid-template-columns: minmax(0, 720px);
+    justify-content: center;
+    max-width: 760px;
+  }
+
+  .checkout-side-card {
+    max-width: none;
+  }
+}
+
 @media (max-width: 640px) {
   .site-header {
     align-items: flex-start;
@@ -1170,7 +1384,8 @@ button {
   }
 
   .page-header,
-  .dashboard-card-head {
+  .dashboard-card-head,
+  .profile-hero {
     align-items: stretch;
     display: grid;
     grid-template-columns: 1fr;
@@ -1179,6 +1394,32 @@ button {
   .amount-xl,
   .checkout-amount {
     font-size: 42px;
+  }
+
+  .checkout-card,
+  .checkout-side-card {
+    padding: 20px;
+  }
+
+  .checkout-card .page-title {
+    font-size: 34px;
+    max-width: none;
+  }
+
+  .technical-panel summary {
+    align-items: flex-start;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    padding: 18px;
+  }
+
+  .technical-summary-copy {
+    grid-column: 1 / -1;
+    text-align: left;
+  }
+
+  .technical-data-list {
+    padding: 0 18px 18px;
   }
 
   .dashboard-amount {
@@ -1195,6 +1436,10 @@ button {
   .danger-button,
   .copy-button {
     width: 100%;
+  }
+
+  .slug-input-row {
+    grid-template-columns: 1fr;
   }
 
   .address-inline {

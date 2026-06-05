@@ -22,8 +22,8 @@ const features = [
     body: "Creators can read dashboard state from the contract instead of chasing payment screenshots.",
   },
   {
-    title: "Four checkout modes",
-    body: "Create a Payment Link, Invoice, Unlock, or Group funding link from one FlowLink experience.",
+    title: "Public profiles",
+    body: "Share one profile for payment links, invoices, tips, unlocks, and group funding.",
   },
 ];
 
@@ -49,6 +49,9 @@ export default function HomePage() {
             <Button href="/create">Create Link</Button>
             <Button href="/dashboard" variant="secondary">
               View Dashboard
+            </Button>
+            <Button href="/profile" variant="secondary">
+              Create your FlowLink profile
             </Button>
           </motion.div>
           <motion.div className="trust-row" variants={fadeUp}>

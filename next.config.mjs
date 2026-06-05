@@ -8,6 +8,14 @@ const nextConfig = {
   turbopack: {
     root,
   },
+  async rewrites() {
+    return [
+      {
+        source: "/@:username",
+        destination: "/by-username/:username",
+      },
+    ];
+  },
 };
 
 export default nextConfig;

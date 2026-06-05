@@ -6,12 +6,22 @@ import type { ReactNode } from "react";
 import { AmountDisplay } from "./AmountDisplay";
 import { AddressDisplay } from "./AddressDisplay";
 import { CopyButton } from "./CopyButton";
-import { buildExplorerTxUrl } from "../../src/flowlink-v2/utils";
-import type { Link } from "../../src/flowlink-v2/types";
+import { buildExplorerTxUrl } from "../../src/flowlink-v4/utils";
+import type { Link } from "../../src/flowlink-v4/types";
 import { formatDateTime, getModeText } from "../lib/link";
 
-export function ReceiptCard({ linkId, link, txHash }: { linkId: bigint; link: Link; txHash?: Hex | null }) {
-  const amount = link.paidAmount > 0n ? link.paidAmount : link.amount;
+export function ReceiptCard({
+  linkId,
+  link,
+  txHash,
+  amountOverride,
+}: {
+  linkId: bigint;
+  link: Link;
+  txHash?: Hex | null;
+  amountOverride?: bigint | null;
+}) {
+  const amount = amountOverride ?? (link.paidAmount > 0n ? link.paidAmount : link.amount);
 
   return (
     <motion.section
@@ -41,9 +51,17 @@ export function ReceiptCard({ linkId, link, txHash }: { linkId: bigint; link: Li
           <ReceiptRow
             label="Payment tx"
             value={
-              <a className="mono" href={buildExplorerTxUrl(txHash)} target="_blank" rel="noreferrer">
-                {txHash}
-              </a>
+              <div className="hash-field">
+                <a className="mono hash-value" href={buildExplorerTxUrl(txHash)} target="_blank" rel="noreferrer">
+                  {txHash}
+                </a>
+                <div className="hash-actions">
+                  <CopyButton value={txHash} label="Copy hash" compact />
+                  <a className="copy-button" href={buildExplorerTxUrl(txHash)} target="_blank" rel="noreferrer">
+                    Open
+                  </a>
+                </div>
+              </div>
             }
           />
         )}
