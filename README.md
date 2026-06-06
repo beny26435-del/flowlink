@@ -2,7 +2,7 @@
 
 FlowLink is a stablecoin checkout primitive for Arc. It lets users create payment links, invoices, unlock-after-payment links, group funding links, public payment URLs, creator profiles, and profile Tip Jars using native Arc USDC.
 
-This repository includes a minimal demo frontend plus a clean contract, Foundry test suite, deployment script, Arc config, viem service layer, and App Kit integration stubs. The UI is intentionally simple and focused on creating, paying, and managing FlowLink payment links on Arc Testnet.
+This repository includes a minimal demo frontend plus a clean contract, Foundry test suite, deployment script, Arc config, viem service layer, and a real Arc App Kit funding helper. The UI is intentionally simple and focused on creating, paying, and managing FlowLink payment links on Arc Testnet.
 
 ## Why Arc?
 
@@ -15,7 +15,7 @@ Arc is an EVM-compatible L1 built for stablecoin-native financial apps. Arc uses
 - TypeScript service modules for future backend/frontend integration.
 - Minimal Next.js frontend for create, pay/contribute/refund, dashboard, profile, and public slug flows.
 - Arc Testnet config for viem.
-- App Kit module stubs for future Send, Bridge, and Unified Balance flows.
+- Arc App Kit Send integration for compact funding assistance.
 - No database.
 - No ERC20 payment flow or App Kit Unified Balance payment flow yet.
 
@@ -25,7 +25,9 @@ FlowLink v1 uses `msg.value` native payments. On Arc, the native token is USDC, 
 
 This is not an ERC20 `transferFrom` flow. Do not mix native value amounts with ERC20 USDC assumptions in v1. The TypeScript helpers treat native value as 18-decimal wei-like units for contract calls unless Arc/App Kit integration later requires different display handling.
 
-The multi-mode contract still uses native Arc USDC through `msg.value`. Future work can add ERC20 USDC support and App Kit Unified Balance so users can pay from balances across chains or apps.
+The multi-mode contract still uses native Arc USDC through `msg.value`. Arc App Kit is used around FlowLink as a funding and stablecoin operations helper. FlowLink handles checkout and receipts. Arc App Kit helps users prepare and move USDC.
+
+The current App Kit integration exposes same-chain Send USDC on Arc and Bridge USDC to Arc through the connected browser wallet and the official Viem adapter. It does not replace the FlowLink contract payment. App Kit Bridge helps users fund their Arc wallet before checkout; after bridging, the user still completes the FlowLink payment with native Arc USDC. Unified Balance remains future work until it is wired, tested, and represented honestly in the UI.
 
 ## Product Modes
 
@@ -157,6 +159,9 @@ NEXT_PUBLIC_FLOWLINK_V3_CONTRACT_ADDRESS=
 FLOWLINK_V4_CONTRACT_ADDRESS=
 NEXT_PUBLIC_FLOWLINK_V4_CONTRACT_ADDRESS=
 APP_KIT_KEY=
+NEXT_PUBLIC_APP_KIT_KEY=
+NEXT_PUBLIC_APP_KIT_BRIDGE_ENABLED=true
+NEXT_PUBLIC_ETHEREUM_SEPOLIA_RPC_URL=https://11155111.rpc.thirdweb.com
 SMOKE_RECIPIENT=
 SMOKE_AMOUNT_USDC=0.01
 SMOKE_BASE_URL=http://localhost:3000
@@ -232,6 +237,9 @@ FLOWLINK_V3_CONTRACT_ADDRESS=0x...
 NEXT_PUBLIC_FLOWLINK_V3_CONTRACT_ADDRESS=0x...
 FLOWLINK_V4_CONTRACT_ADDRESS=0x...
 NEXT_PUBLIC_FLOWLINK_V4_CONTRACT_ADDRESS=0x...
+NEXT_PUBLIC_APP_KIT_KEY=
+NEXT_PUBLIC_APP_KIT_BRIDGE_ENABLED=true
+NEXT_PUBLIC_ETHEREUM_SEPOLIA_RPC_URL=https://11155111.rpc.thirdweb.com
 ```
 
 Use `src/flowlink/client.ts` to create, pay, cancel, and read links from a backend route, script, or future frontend. Read helpers can create an Arc Testnet public client from `ARC_TESTNET_RPC_URL`.
@@ -259,7 +267,12 @@ NEXT_PUBLIC_FLOWLINK_V2_CONTRACT_ADDRESS=0x...
 NEXT_PUBLIC_FLOWLINK_V3_CONTRACT_ADDRESS=0x...
 NEXT_PUBLIC_FLOWLINK_V4_CONTRACT_ADDRESS=0x...
 NEXT_PUBLIC_ARC_TESTNET_RPC_URL=https://rpc.testnet.arc.network
+NEXT_PUBLIC_APP_KIT_KEY=
+NEXT_PUBLIC_APP_KIT_BRIDGE_ENABLED=true
+NEXT_PUBLIC_ETHEREUM_SEPOLIA_RPC_URL=https://11155111.rpc.thirdweb.com
 ```
+
+`NEXT_PUBLIC_APP_KIT_KEY` is only for browser-safe App Kit configuration. Keep any server-only App Kit secret in `APP_KIT_KEY`; the frontend does not read or expose it.
 
 The app includes:
 
@@ -273,6 +286,18 @@ The app includes:
 - `/@username`: public profile by username.
 
 Payment links still use native Arc USDC through `msg.value`. The frontend does not expose `PRIVATE_KEY`, does not use backend wallet signing, and does not add ERC20 or database behavior.
+
+### Arc App Kit Funding Helper
+
+FlowLink includes a compact, collapsed App Kit funding center on public payment pages and public profiles. It says: “FlowLink handles checkout and receipts. Arc App Kit helps users prepare and move USDC.”
+
+- Implemented: App Kit Send for same-chain USDC transfers on Arc Testnet using the connected browser wallet and `@circle-fin/adapter-viem-v2`.
+- Implemented: App Kit Bridge for USDC movement from Ethereum Sepolia to Arc Testnet using `kit.bridge({ from: { adapter, chain: "Ethereum_Sepolia" }, to: { adapter, chain: "Arc_Testnet" }, amount })`.
+- Supported bridge route: Ethereum Sepolia → Arc Testnet.
+- Bridge funds the connected wallet on Arc Testnet, not the FlowLink recipient by default.
+- Bridge may involve source-chain approval, source-chain burn/transfer, attestation or bridge processing, and destination completion handled by App Kit.
+- Not yet implemented: App Kit Unified Balance. The UI labels it as coming next and does not fake success.
+- Checkout remains primary: paying a FlowLink still calls the FlowLink contract with native Arc USDC through `msg.value`.
 
 ## Smoke Test
 
@@ -363,7 +388,7 @@ Successful Profile Tip Jar Arc Testnet smoke run:
 ## Service Modules
 
 - `src/arc/chain.ts`: Arc Testnet constants and viem chain object.
-- `src/arc/appkit.ts`: App Kit import and explicit v2 TODO stubs.
+- `src/arc/appkit.ts`: real Arc App Kit initialization, config status, capabilities, Viem adapter setup, same-chain Send helper, and Ethereum Sepolia to Arc Testnet Bridge helper.
 - `src/flowlink/abi.ts`: typed `FlowLink` ABI.
 - `src/flowlink/client.ts`: viem read/write functions.
 - `src/flowlink/types.ts`: shared integration types.
@@ -384,8 +409,6 @@ Successful Profile Tip Jar Arc Testnet smoke run:
 ## Future Work
 
 - ERC20 USDC support if needed.
-- App Kit Send for same-chain USDC sending.
-- App Kit Bridge for crosschain USDC movement into Arc.
 - App Kit Unified Balance for pay-from-anywhere payments.
 - Receipt NFTs.
 - Richer receipt indexing.

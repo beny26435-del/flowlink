@@ -17,6 +17,7 @@ import { PageTransition } from "../components/PageTransition";
 import { StatCard } from "../components/StatCard";
 import { WalletConnectButton } from "../components/WalletConnectButton";
 import { FLOWLINK_CONTRACT_MISSING_MESSAGE, flowLinkContractAddress, hasFlowLinkContractAddress } from "../config";
+import { productText } from "../lib/displayText";
 import { formatDateTime, getGroupProgress, getModeText, normalizeLinkStatus, normalizePaymentLink, type RawLink } from "../lib/link";
 import { arcTestnet } from "../../src/arc/chain";
 import { flowLinkV4Abi } from "../../src/flowlink-v4/abi";
@@ -240,8 +241,8 @@ function DashboardLink({ summary, index, onChanged }: { summary: Summary; index:
                 <span className={link.listed ? "badge good" : "badge"}>{link.listed ? "Listed" : "Unlisted"}</span>
                 <span className="badge">Link #{linkId.toString()}</span>
               </div>
-              <h2>{link.title}</h2>
-              {link.description && <p className="muted">{link.description}</p>}
+              <h2>{productText(link.title)}</h2>
+              {link.description && <p className="muted">{productText(link.description)}</p>}
             </div>
             <div className="dashboard-amount">
               <AmountDisplay amount={link.amount} />
@@ -250,7 +251,7 @@ function DashboardLink({ summary, index, onChanged }: { summary: Summary; index:
 
           {link.mode === 3 && <DashboardGroupProgress link={link} />}
           {link.mode === 1 && (
-            <div className="notice">Invoice for {link.clientName || "client"}{link.invoiceNumber ? ` · ${link.invoiceNumber}` : ""}</div>
+            <div className="notice">Invoice for {productText(link.clientName) || "client"}{link.invoiceNumber ? ` · ${productText(link.invoiceNumber)}` : ""}</div>
           )}
           {link.mode === 2 && <div className="notice">Unlock content is available after payment.</div>}
 

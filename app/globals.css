@@ -752,6 +752,193 @@ button {
   color: #ffd0d7;
 }
 
+.appkit-funding-card {
+  background:
+    linear-gradient(145deg, rgba(117, 231, 255, 0.055), rgba(255, 255, 255, 0.025)),
+    rgba(6, 12, 20, 0.58);
+  border: 1px solid rgba(177, 222, 255, 0.13);
+  border-radius: 18px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
+  margin-top: 16px;
+  overflow: hidden;
+}
+
+.appkit-funding-toggle {
+  align-items: center;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  display: flex;
+  gap: 14px;
+  justify-content: space-between;
+  padding: 16px;
+  text-align: left;
+  width: 100%;
+}
+
+.appkit-funding-toggle span:first-child {
+  display: grid;
+  gap: 3px;
+}
+
+.appkit-funding-toggle small,
+.small {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.appkit-funding-body {
+  display: grid;
+  gap: 14px;
+  overflow: hidden;
+  padding: 0 16px 16px;
+}
+
+.appkit-capability-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.appkit-capability-row {
+  align-items: start;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.085);
+  border-radius: 14px;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: auto minmax(0, 1fr);
+  padding: 12px;
+}
+
+.appkit-capability-row strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.appkit-capability-row p {
+  margin: 0;
+}
+
+.appkit-send-panel {
+  background: rgba(3, 7, 12, 0.34);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+}
+
+.appkit-bridge-panel {
+  background:
+    radial-gradient(circle at 92% 4%, rgba(102, 242, 189, 0.09), transparent 11rem),
+    rgba(3, 7, 12, 0.42);
+  border: 1px solid rgba(102, 242, 189, 0.16);
+  border-radius: 16px;
+  display: grid;
+  gap: 13px;
+  padding: 16px;
+}
+
+.appkit-bridge-panel h3 {
+  font-size: 20px;
+  margin: 0;
+}
+
+.appkit-bridge-steps {
+  display: grid;
+  gap: 9px;
+}
+
+.appkit-bridge-step {
+  align-items: start;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 13px;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: auto minmax(0, 1fr);
+  padding: 10px;
+}
+
+.appkit-bridge-step strong {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.appkit-secondary-tools,
+.appkit-technical-details {
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.appkit-secondary-tools summary,
+.appkit-technical-details summary {
+  cursor: pointer;
+  font-weight: 850;
+  list-style: none;
+  padding: 13px 14px;
+}
+
+.appkit-secondary-tools summary::-webkit-details-marker,
+.appkit-technical-details summary::-webkit-details-marker {
+  display: none;
+}
+
+.appkit-secondary-tools .appkit-send-panel {
+  border-left: 0;
+  border-right: 0;
+  border-radius: 0;
+  border-bottom: 0;
+}
+
+.appkit-technical-details pre {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5;
+  margin: 0;
+  max-height: 180px;
+  overflow: auto;
+  padding: 0 14px 14px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.appkit-amount-field {
+  margin-top: 2px;
+}
+
+.appkit-status {
+  padding: 12px 14px;
+}
+
+.appkit-home-section {
+  overflow: hidden;
+}
+
+.appkit-home-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 20px;
+}
+
+.appkit-home-card {
+  background: rgba(3, 7, 12, 0.34);
+  border: 1px solid rgba(255, 255, 255, 0.085);
+  border-radius: 16px;
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+}
+
+.appkit-home-card h3 {
+  font-size: 18px;
+  margin: 0;
+}
+
 .link-list {
   display: grid;
   gap: 12px;
@@ -1323,6 +1510,10 @@ button {
   .feature-grid,
   .stats-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .appkit-home-grid {
+    grid-template-columns: 1fr;
   }
 
   .mode-tabs {

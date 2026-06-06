@@ -9,9 +9,11 @@ import { flowLinkV4Abi } from "../../src/flowlink-v4/abi";
 import type { LinkMode } from "../../src/flowlink-v4/types";
 import { buildExplorerAddressUrl, buildExplorerTxUrl, formatNativeUsdcAmount, parseNativeUsdcAmount } from "../../src/flowlink-v4/utils";
 import { FLOWLINK_CONTRACT_MISSING_MESSAGE, flowLinkContractAddress, hasFlowLinkContractAddress } from "../config";
+import { productText } from "../lib/displayText";
 import { formatDateTime, getGroupProgress, getModeText, normalizeLinkStatus, normalizePaymentLink, type RawLink } from "../lib/link";
 import { AddressDisplay } from "./AddressDisplay";
 import { AmountDisplay } from "./AmountDisplay";
+import { AppKitFundingCenter } from "./AppKitFundingCenter";
 import { Button } from "./Button";
 import { CopyButton } from "./CopyButton";
 import { LinkStatusBadge } from "./LinkStatusBadge";
@@ -247,8 +249,8 @@ export function PayLinkView({ linkId, slug, routeKey }: PayLinkViewProps) {
             <div className="checkout-amount">
               <AmountDisplay amount={link.amount} />
             </div>
-            <h1 className="page-title">{link.title}</h1>
-            {link.description && <p className="page-subtitle">{link.description}</p>}
+            <h1 className="page-title">{productText(link.title)}</h1>
+            {link.description && <p className="page-subtitle">{productText(link.description)}</p>}
 
             {isGroup && <GroupProgress link={link} contributorsCount={(contributorsRead.data as Address[] | undefined)?.length ?? 0} />}
             {link.mode === 1 && <InvoiceDetails link={link} />}
@@ -308,6 +310,13 @@ export function PayLinkView({ linkId, slug, routeKey }: PayLinkViewProps) {
                 </Button>
               </div>
             )}
+
+            <AppKitFundingCenter
+              recipient={link.recipient}
+              amount={isGroup ? (status?.remainingAmount ?? link.amount - link.paidAmount) : link.amount}
+              mode={getModeText(link.mode)}
+              reference={slugMode ? `/${link.slug}` : resolvedLinkId ? `Link #${resolvedLinkId.toString()}` : undefined}
+            />
 
             {error && <motion.div className="error" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>{error}</motion.div>}
             {txHash && <TransactionStatusAction txHash={txHash} complete={Boolean(link.paid)} confirmed={txConfirmed} label="Payment" />}
@@ -467,9 +476,9 @@ function GroupProgress({ link, contributorsCount }: { link: NonNullable<ReturnTy
 function InvoiceDetails({ link }: { link: NonNullable<ReturnType<typeof normalizePaymentLink>> }) {
   return (
     <div className="mode-detail-panel">
-      <DataRow label="Client" value={link.clientName || "-"} />
-      <DataRow label="Invoice" value={link.invoiceNumber || "-"} />
-      <DataRow label="Service" value={link.serviceTitle || "-"} />
+      <DataRow label="Client" value={productText(link.clientName) || "-"} />
+      <DataRow label="Invoice" value={productText(link.invoiceNumber) || "-"} />
+      <DataRow label="Service" value={productText(link.serviceTitle) || "-"} />
     </div>
   );
 }
@@ -486,7 +495,7 @@ function UnlockDetails({ link }: { link: NonNullable<ReturnType<typeof normalize
 
   return (
     <div className="state-message good checkout-state-panel">
-      <strong>{link.successMessage || "Unlocked"}</strong>
+      <strong>{productText(link.successMessage) || "Unlocked"}</strong>
       {link.unlockUrl && (
         <a className="mono" href={link.unlockUrl} target="_blank" rel="noreferrer">
           {link.unlockUrl}

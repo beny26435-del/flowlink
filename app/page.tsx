@@ -27,7 +27,25 @@ const features = [
   },
 ];
 
-const trust = ["Arc Testnet", "Native USDC", "Onchain receipts", "No database"];
+const trust = ["Arc Testnet", "Native USDC", "Onchain receipts", "No database", "Arc App Kit integrated for funding tools"];
+
+const appKitFunding = [
+  {
+    title: "Send USDC on Arc",
+    status: "Live",
+    body: "Move USDC on Arc Testnet with the connected wallet.",
+  },
+  {
+    title: "Bridge USDC to Arc",
+    status: "Live",
+    body: "Bridge USDC onto Arc, then pay FlowLink invoices, unlocks, groups, and profiles.",
+  },
+  {
+    title: "Unified Balance",
+    status: "Next",
+    body: "Future funding flow for preparing USDC from supported sources.",
+  },
+];
 
 export default function HomePage() {
   return (
@@ -99,6 +117,25 @@ export default function HomePage() {
             <p className="muted">{feature.body}</p>
           </motion.article>
         ))}
+      </motion.section>
+
+      <motion.section className="section appkit-home-section" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45, delay: 0.12 }}>
+        <div className="page-header">
+          <div>
+            <p className="eyebrow">Funding layer</p>
+            <h2>Arc App Kit for USDC movement</h2>
+            <p className="muted">FlowLink handles checkout and receipts. Arc App Kit helps users prepare and move USDC before checkout.</p>
+          </div>
+        </div>
+        <div className="appkit-home-grid">
+          {appKitFunding.map((item) => (
+            <article className="appkit-home-card" key={item.title}>
+              <span className={item.status === "Live" ? "badge good" : "badge"}>{item.status}</span>
+              <h3>{item.title}</h3>
+              <p className="small">{item.body}</p>
+            </article>
+          ))}
+        </div>
       </motion.section>
 
       <motion.section className="section" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45, delay: 0.18 }}>

@@ -9,9 +9,11 @@ import { flowLinkV4Abi } from "../../src/flowlink-v4/abi";
 import type { Link, LinkMode, LinkStatus, Profile } from "../../src/flowlink-v4/types";
 import { buildExplorerTxUrl, buildPublicPayUrl, formatNativeUsdcAmount, parseNativeUsdcAmount, validateUsername } from "../../src/flowlink-v4/utils";
 import { FLOWLINK_CONTRACT_MISSING_MESSAGE, flowLinkContractAddress, hasFlowLinkContractAddress } from "../config";
+import { productText } from "../lib/displayText";
 import { formatDateTime, getGroupProgress, getModeText, normalizeLinkStatus, normalizePaymentLink, normalizeProfile, type RawLink, type RawProfile } from "../lib/link";
 import { AddressDisplay } from "./AddressDisplay";
 import { AmountDisplay } from "./AmountDisplay";
+import { AppKitFundingCenter } from "./AppKitFundingCenter";
 import { Button } from "./Button";
 import { CopyButton } from "./CopyButton";
 import { LinkStatusBadge } from "./LinkStatusBadge";
@@ -99,7 +101,7 @@ export function PublicProfileView(props: PublicProfileViewProps) {
     }));
   }, [linkIds, linksRead.data, statusesRead.data]);
 
-  const displayName = profile?.displayName || (owner ? shortAddress(owner) : "FlowLink profile");
+  const displayName = productText(profile?.displayName) || (owner ? shortAddress(owner) : "FlowLink profile");
   const totalVolume = summaries.reduce((sum, item) => sum + (item.link?.amount ?? 0n), 0n);
   const paidCount = summaries.filter((item) => item.status?.paid).length;
   const loading = Boolean(usernameProfileRead.isLoading || addressProfileRead.isLoading || listedIdsRead.isLoading);
@@ -139,7 +141,7 @@ export function PublicProfileView(props: PublicProfileViewProps) {
               <span className="eyebrow">Public profile</span>
               <h1 className="page-title">{displayName}</h1>
               {profile?.username && <p className="page-subtitle">@{profile.username}</p>}
-              {profile?.bio && <p className="page-subtitle">{profile.bio}</p>}
+              {profile?.bio && <p className="page-subtitle">{productText(profile.bio)}</p>}
               {owner && (
                 <div className="actions">
                   <AddressDisplay address={owner} copy />
@@ -164,7 +166,10 @@ export function PublicProfileView(props: PublicProfileViewProps) {
       </section>
 
       {owner && profile?.tipsEnabled && (
-        <TipProfileCard profile={profile} owner={owner} stats={tipStats} onTipped={() => void tipStatsRead.refetch()} />
+        <>
+          <TipProfileCard profile={profile} owner={owner} stats={tipStats} onTipped={() => void tipStatsRead.refetch()} />
+          <AppKitFundingCenter recipient={owner} amount={tipStats?.[2] ?? profile.minimumTipAmount} mode="Profile Tip Jar" reference={profile.username ? `@${profile.username}` : undefined} />
+        </>
       )}
 
       {listedIdsRead.isLoading ? (
@@ -205,8 +210,8 @@ function ListedLinkCard({ summary, index }: { summary: ListedSummary; index: num
                 <LinkStatusBadge status={status} />
                 <span className="badge">{getModeText(link.mode)}</span>
               </div>
-              <h2>{link.title}</h2>
-              {link.description && <p className="muted">{link.description}</p>}
+              <h2>{productText(link.title)}</h2>
+              {link.description && <p className="muted">{productText(link.description)}</p>}
             </div>
             <div className="dashboard-amount">
               <AmountDisplay amount={link.amount} />
