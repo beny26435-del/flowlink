@@ -106,7 +106,7 @@ async function createAndRead(label: string, txPromise: Promise<Hex>) {
     logs: receipt.logs,
   });
 
-  const linkId = logs[0]?.args.linkId;
+  const linkId = (logs[0] as any)?.args?.linkId;
   if (!linkId) throw new Error(`${label}: LinkCreated event not found.`);
 
   const link = await getLink(config, linkId);

@@ -177,7 +177,7 @@ export async function getCreatorLinks(config: FlowLinkV2Config, creator: Address
     args: [creator],
   });
 
-  return [...result];
+  return [...(result as bigint[])];
 }
 
 export async function getPayerLinks(config: FlowLinkV2Config, payer: Address): Promise<bigint[]> {
@@ -188,7 +188,7 @@ export async function getPayerLinks(config: FlowLinkV2Config, payer: Address): P
     args: [payer],
   });
 
-  return [...result];
+  return [...(result as bigint[])];
 }
 
 export async function getGroupContributors(config: FlowLinkV2Config, linkId: bigint): Promise<Address[]> {
@@ -199,7 +199,7 @@ export async function getGroupContributors(config: FlowLinkV2Config, linkId: big
     args: [linkId],
   });
 
-  return [...result];
+  return [...(result as `0x${string}`[])];
 }
 
 export async function getGroupContribution(
@@ -207,21 +207,25 @@ export async function getGroupContribution(
   linkId: bigint,
   contributor: Address,
 ): Promise<bigint> {
-  return requirePublicClient(config).readContract({
+  const result = await requirePublicClient(config).readContract({
     address: resolveContractAddress(config),
     abi: flowLinkV2Abi,
     functionName: "getGroupContribution",
     args: [linkId, contributor],
   });
+
+  return result as bigint;
 }
 
 export async function isPayable(config: FlowLinkV2Config, linkId: bigint): Promise<boolean> {
-  return requirePublicClient(config).readContract({
+  const result = await requirePublicClient(config).readContract({
     address: resolveContractAddress(config),
     abi: flowLinkV2Abi,
     functionName: "isPayable",
     args: [linkId],
   });
+
+  return result as boolean;
 }
 
 export async function getLinkStatus(config: FlowLinkV2Config, linkId: bigint): Promise<LinkStatus> {

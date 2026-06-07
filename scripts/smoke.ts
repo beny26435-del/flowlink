@@ -66,7 +66,7 @@ if (createdLogs.length === 0) {
   throw new Error("LinkCreated event was not found in the createLink transaction receipt.");
 }
 
-const linkId = createdLogs[0].args.linkId;
+const linkId = (createdLogs[0] as any)?.args?.linkId;
 const link = await getLink(config, linkId);
 const status = await getLinkStatus(config, linkId);
 const payable = await isPayable(config, linkId);

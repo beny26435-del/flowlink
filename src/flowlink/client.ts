@@ -105,7 +105,7 @@ export async function getCreatorLinks(config: FlowLinkConfig, creator: Address):
     args: [creator],
   });
 
-  return [...result];
+  return [...(result as bigint[])];
 }
 
 export async function getPayerLinks(config: FlowLinkConfig, payer: Address): Promise<bigint[]> {
@@ -116,25 +116,27 @@ export async function getPayerLinks(config: FlowLinkConfig, payer: Address): Pro
     args: [payer],
   });
 
-  return [...result];
+  return [...(result as bigint[])];
 }
 
 export async function isPayable(config: FlowLinkConfig, linkId: bigint): Promise<boolean> {
-  return requirePublicClient(config).readContract({
+  const result = await requirePublicClient(config).readContract({
     address: resolveContractAddress(config),
     abi: flowLinkAbi,
     functionName: "isPayable",
     args: [linkId],
   });
+
+  return result as boolean;
 }
 
 export async function getLinkStatus(config: FlowLinkConfig, linkId: bigint): Promise<LinkStatus> {
-  const result = await requirePublicClient(config).readContract({
+  const result = (await requirePublicClient(config).readContract({
     address: resolveContractAddress(config),
     abi: flowLinkAbi,
     functionName: "getLinkStatus",
     args: [linkId],
-  });
+  })) as readonly [boolean, boolean, boolean, boolean, boolean];
 
   return {
     exists: result[0],
