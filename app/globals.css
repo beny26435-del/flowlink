@@ -251,6 +251,17 @@ button {
   transform: translateY(-1px);
 }
 
+.nav .button,
+.nav .secondary-button {
+  font-size: 13px;
+  min-height: 38px;
+  padding: 9px 12px;
+}
+
+.nav .status-row {
+  gap: 7px;
+}
+
 .page-shell {
   margin: 0 auto;
   max-width: 1180px;
@@ -350,6 +361,17 @@ button {
   margin-top: 24px;
 }
 
+.hero-funding-note {
+  align-items: center;
+  color: var(--muted);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 14px;
+  gap: 10px;
+  line-height: 1.45;
+  margin-top: 14px;
+}
+
 .trust-pill,
 .badge {
   align-items: center;
@@ -365,6 +387,12 @@ button {
   font-size: 13px;
   font-weight: 750;
   padding: 9px 12px;
+}
+
+.bridge-pill {
+  background: rgba(102, 242, 189, 0.1);
+  border-color: rgba(102, 242, 189, 0.26);
+  color: #dffff5;
 }
 
 .glass-card,
@@ -939,6 +967,541 @@ button {
   margin: 0;
 }
 
+.bridge-flow-grid {
+  align-items: start;
+  display: grid;
+  gap: 24px;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 420px);
+  margin: 0 auto;
+  max-width: 1120px;
+}
+
+.bridge-primary-card,
+.bridge-side-card {
+  display: grid;
+  gap: 18px;
+}
+
+.bridge-route {
+  align-items: center;
+  display: grid;
+  gap: 14px;
+  grid-template-columns: minmax(0, 1fr) 72px minmax(0, 1fr);
+}
+
+.bridge-route > div:not(.bridge-route-line) {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  display: grid;
+  gap: 5px;
+  padding: 16px;
+}
+
+.bridge-route span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.bridge-route strong {
+  font-size: 18px;
+}
+
+.bridge-route-line {
+  background: linear-gradient(90deg, transparent, rgba(117, 231, 255, 0.65), transparent);
+  height: 2px;
+}
+
+.bridge-wallet-row {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.bridge-page-compact {
+  display: grid;
+  gap: 14px;
+  margin-top: 0;
+  padding-top: 24px;
+}
+
+.bridge-page-compact .page-header {
+  align-items: center;
+}
+
+.bridge-page-compact .eyebrow {
+  font-size: 11px;
+  margin-bottom: 6px;
+}
+
+.bridge-page-compact .eyebrow::before {
+  height: 6px;
+  width: 6px;
+}
+
+.bridge-page-compact .page-title {
+  font-size: clamp(32px, 4vw, 46px);
+}
+
+.bridge-page-compact .page-subtitle {
+  display: none;
+}
+
+.bridge-shell {
+  align-items: start;
+  display: grid;
+  grid-template-columns: minmax(0, 740px);
+  justify-content: center;
+  margin: 0 auto;
+  max-width: min(760px, calc(100vw - 32px));
+  width: 100%;
+}
+
+.bridge-card {
+  background:
+    radial-gradient(circle at 15% 0%, rgba(117, 231, 255, 0.13), transparent 17rem),
+    linear-gradient(145deg, rgba(117, 231, 255, 0.095), rgba(255, 255, 255, 0.04)),
+    rgba(8, 15, 26, 0.82);
+  border: 1px solid rgba(188, 228, 255, 0.2);
+  border-radius: 26px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 30px 90px rgba(0, 0, 0, 0.34);
+  display: grid;
+  gap: 17px;
+  overflow: visible;
+  padding: 28px;
+  width: 100%;
+}
+
+.bridge-card-header {
+  align-items: start;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+}
+
+.bridge-card-header h2 {
+  font-size: clamp(22px, 3vw, 29px);
+  margin: 4px 0 0;
+}
+
+.bridge-subcopy {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.35;
+  margin: 6px 0 0;
+  max-width: 420px;
+}
+
+.bridge-appkit-badge {
+  align-items: center;
+  border-radius: 999px;
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-size: 12px;
+  font-weight: 900;
+  margin-top: 2px;
+  padding: 8px 11px;
+}
+
+.bridge-appkit-badge.good {
+  background: rgba(102, 242, 189, 0.12);
+  border: 1px solid rgba(102, 242, 189, 0.28);
+  color: #dffff5;
+}
+
+.bridge-appkit-badge.warn {
+  background: rgba(255, 207, 102, 0.12);
+  border: 1px solid rgba(255, 207, 102, 0.28);
+  color: #ffe5a0;
+}
+
+.bridge-token-panel {
+  background:
+    radial-gradient(circle at 95% 8%, rgba(102, 242, 189, 0.11), transparent 13rem),
+    rgba(12, 24, 39, 0.74);
+  border: 1px solid rgba(205, 235, 255, 0.14);
+  border-radius: 20px;
+  display: grid;
+  gap: 15px;
+  padding: 23px;
+}
+
+.bridge-midline,
+.bridge-actions {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.bridge-token-row {
+  align-items: center;
+  display: grid;
+  gap: 28px;
+  grid-template-columns: minmax(0, 1fr) minmax(250px, auto);
+}
+
+.bridge-network-title-row {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-bottom: 2px;
+}
+
+.bridge-network-title-row > span:first-child {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.bridge-network-card {
+  align-items: center;
+  display: flex;
+  gap: 13px;
+}
+
+.bridge-network-icon {
+  align-items: center;
+  background: linear-gradient(135deg, rgba(102, 242, 189, 0.24), rgba(117, 231, 255, 0.16));
+  border: 1px solid rgba(117, 231, 255, 0.24);
+  border-radius: 13px;
+  color: #eafffb;
+  display: inline-flex;
+  font-size: 17px;
+  font-weight: 950;
+  height: 40px;
+  justify-content: center;
+  width: 40px;
+}
+
+.bridge-network-card strong {
+  display: block;
+  font-size: 19px;
+}
+
+.bridge-network-card small {
+  color: var(--muted);
+}
+
+.bridge-token-pill {
+  background: rgba(102, 242, 189, 0.1);
+  border: 1px solid rgba(102, 242, 189, 0.24);
+  border-radius: 999px;
+  display: inline-flex;
+  font-size: 11px;
+  font-weight: 950;
+  padding: 5px 8px;
+}
+
+.bridge-balance-stack {
+  align-items: stretch;
+  color: var(--muted);
+  display: grid;
+  font-size: 13px;
+  gap: 3px;
+  margin-top: 4px;
+  min-width: min(260px, 100%);
+}
+
+.bridge-balance-line,
+.bridge-destination-balance {
+  align-items: center;
+  display: flex;
+  gap: 7px;
+  min-width: 0;
+}
+
+.bridge-balance-stack span,
+.bridge-destination-balance span {
+  line-height: 1.35;
+}
+
+.bridge-balance-line strong,
+.bridge-destination-balance strong {
+  color: rgba(232, 250, 255, 0.92);
+  font-weight: 850;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.bridge-amount-entry {
+  align-items: baseline;
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.bridge-amount-entry span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.bridge-max-button {
+  background: rgba(102, 242, 189, 0.1);
+  border: 1px solid rgba(102, 242, 189, 0.24);
+  border-radius: 999px;
+  color: #dffff5;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 900;
+  padding: 4px 8px;
+}
+
+.bridge-token-row input {
+  background: transparent;
+  border: 0;
+  color: var(--text);
+  font-size: clamp(34px, 5vw, 46px);
+  font-weight: 950;
+  max-width: 250px;
+  outline: none;
+  text-align: right;
+}
+
+.bridge-token-row input:focus {
+  box-shadow: none;
+}
+
+.bridge-receive-preview {
+  color: #d8fff3;
+  display: block;
+  font-size: clamp(29px, 4.4vw, 40px);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.bridge-receive-stack {
+  display: grid;
+  gap: 2px;
+  justify-items: end;
+}
+
+.bridge-receive-stack span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.bridge-destination-balance {
+  color: var(--muted);
+  font-size: 13px;
+  justify-self: stretch;
+  max-width: 300px;
+}
+
+.bridge-compact-left {
+  display: grid;
+  gap: 11px;
+  min-width: 0;
+}
+
+.bridge-compact-amount {
+  display: grid;
+  gap: 7px;
+  justify-items: end;
+  min-width: 250px;
+}
+
+.bridge-compact-amount > span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.bridge-direction-button {
+  align-items: center;
+  background: linear-gradient(135deg, rgba(102, 242, 189, 0.18), rgba(117, 231, 255, 0.12));
+  border: 1px solid rgba(117, 231, 255, 0.24);
+  border-radius: 999px;
+  color: var(--text);
+  cursor: pointer;
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-size: 20px;
+  height: 48px;
+  justify-content: center;
+  transition: transform 160ms ease, border-color 160ms ease;
+  width: 48px;
+}
+
+.bridge-direction-button:hover {
+  border-color: rgba(102, 242, 189, 0.44);
+  transform: translateY(-1px);
+}
+
+.bridge-route-summary {
+  background: rgba(255, 255, 255, 0.055);
+  border: 1px solid rgba(255, 255, 255, 0.095);
+  border-radius: 16px;
+  display: grid;
+  flex: 1;
+  gap: 1px;
+  min-width: 0;
+  padding: 12px 15px;
+}
+
+.bridge-route-summary strong {
+  font-size: 16px;
+}
+
+.bridge-route-summary strong,
+.bridge-route-summary span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bridge-route-summary span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.bridge-actions {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.bridge-actions .button,
+.bridge-actions .secondary-button {
+  min-height: 46px;
+  padding: 12px 18px;
+}
+
+.bridge-actions .button {
+  box-shadow: 0 12px 30px rgba(102, 242, 189, 0.16);
+}
+
+.bridge-status-panel .actions {
+  margin-top: 8px;
+}
+
+.bridge-stepper {
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(205, 235, 255, 0.11);
+  border-radius: 18px;
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+}
+
+.bridge-stepper-head {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  padding: 0 2px 4px;
+}
+
+.bridge-stepper-head strong {
+  font-size: 13px;
+}
+
+.bridge-stepper-head span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.bridge-stepper-row {
+  align-items: start;
+  border-radius: 14px;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: auto minmax(0, 1fr);
+  padding: 8px;
+}
+
+.bridge-stepper-row.active {
+  background: rgba(117, 231, 255, 0.055);
+}
+
+.bridge-stepper-row.completed {
+  background: rgba(102, 242, 189, 0.045);
+}
+
+.bridge-stepper-row.failed {
+  background: rgba(255, 111, 111, 0.06);
+}
+
+.bridge-stepper-dot {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  color: var(--muted);
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 950;
+  height: 22px;
+  justify-content: center;
+  margin-top: 1px;
+  width: 22px;
+}
+
+.bridge-stepper-row.active .bridge-stepper-dot {
+  background: rgba(117, 231, 255, 0.14);
+  border-color: rgba(117, 231, 255, 0.38);
+  box-shadow: 0 0 18px rgba(117, 231, 255, 0.16);
+}
+
+.bridge-stepper-row.completed .bridge-stepper-dot,
+.bridge-stepper-row.skipped .bridge-stepper-dot {
+  background: rgba(102, 242, 189, 0.13);
+  border-color: rgba(102, 242, 189, 0.32);
+  color: #dffff5;
+}
+
+.bridge-stepper-row.failed .bridge-stepper-dot {
+  background: rgba(255, 111, 111, 0.13);
+  border-color: rgba(255, 111, 111, 0.35);
+  color: #ffd4d4;
+}
+
+.bridge-stepper-title {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.bridge-stepper-title strong {
+  font-size: 13px;
+}
+
+.bridge-stepper-title span {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.bridge-stepper-row p {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.35;
+  margin: 2px 0 0;
+}
+
+.bridge-stepper-row a {
+  display: inline-flex;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
 .link-list {
   display: grid;
   gap: 12px;
@@ -1493,7 +2056,9 @@ button {
 @media (max-width: 980px) {
   .hero-premium,
   .builder-grid,
-  .checkout-grid {
+  .checkout-grid,
+  .bridge-flow-grid,
+  .bridge-shell {
     grid-template-columns: 1fr;
   }
 
@@ -1516,6 +2081,53 @@ button {
     grid-template-columns: 1fr;
   }
 
+  .bridge-route {
+    grid-template-columns: 1fr;
+  }
+
+  .bridge-route-line {
+    height: 28px;
+    justify-self: center;
+    width: 2px;
+  }
+
+  .bridge-card-header,
+  .bridge-midline {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .bridge-appkit-badge {
+    justify-content: center;
+    width: fit-content;
+  }
+
+  .bridge-token-row {
+    grid-template-columns: 1fr;
+  }
+
+  .bridge-compact-amount {
+    justify-items: start;
+    min-width: 0;
+  }
+
+  .bridge-amount-entry,
+  .bridge-receive-stack {
+    justify-content: flex-start;
+    justify-items: start;
+  }
+
+  .bridge-token-row input,
+  .bridge-receive-preview {
+    max-width: none;
+    text-align: left;
+    width: 100%;
+  }
+
+  .bridge-actions {
+    grid-template-columns: 1fr;
+  }
+
   .mode-tabs {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -1526,6 +2138,44 @@ button {
 
   .dashboard-meta-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 981px) and (max-height: 760px) {
+  .bridge-page-compact {
+    gap: 8px;
+    padding-top: 0;
+  }
+
+  .bridge-page-compact .page-title {
+    font-size: clamp(30px, 3.6vw, 40px);
+  }
+
+  .bridge-card {
+    gap: 10px;
+    padding: 18px;
+  }
+
+  .bridge-card-header h2 {
+    font-size: clamp(21px, 2.7vw, 26px);
+  }
+
+  .bridge-token-panel {
+    gap: 10px;
+    padding: 14px;
+  }
+
+  .bridge-token-row {
+    gap: 20px;
+  }
+
+  .bridge-direction-button {
+    height: 44px;
+    width: 44px;
+  }
+
+  .bridge-route-summary {
+    padding: 10px 13px;
   }
 }
 
@@ -1550,13 +2200,20 @@ button {
   }
 
   .nav {
+    flex-wrap: wrap;
     width: 100%;
   }
 
-  .nav a {
+  .nav a,
+  .nav .button,
+  .nav .secondary-button {
     background: rgba(255, 255, 255, 0.055);
-    flex: 1;
+    flex: 1 1 auto;
     text-align: center;
+  }
+
+  .nav .status-row {
+    width: 100%;
   }
 
   .page-shell {

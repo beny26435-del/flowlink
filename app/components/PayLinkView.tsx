@@ -52,6 +52,7 @@ export function PayLinkView({ linkId, slug, routeKey }: PayLinkViewProps) {
   const slugIdRead = useReadContract({
     address: flowLinkContractAddress,
     abi: flowLinkV4Abi,
+    chainId: arcTestnet.id,
     functionName: "getLinkIdBySlug",
     args: slug ? [slug] : undefined,
     query: { enabled: Boolean(enabled && slug) },
@@ -62,6 +63,7 @@ export function PayLinkView({ linkId, slug, routeKey }: PayLinkViewProps) {
   const linkRead = useReadContract({
     address: flowLinkContractAddress,
     abi: flowLinkV4Abi,
+    chainId: arcTestnet.id,
     functionName: slugMode ? "getLinkBySlug" : "getLink",
     args: slugMode ? (slug ? [slug] : undefined) : linkId ? [linkId] : undefined,
     query: { enabled },
@@ -70,6 +72,7 @@ export function PayLinkView({ linkId, slug, routeKey }: PayLinkViewProps) {
   const statusRead = useReadContract({
     address: flowLinkContractAddress,
     abi: flowLinkV4Abi,
+    chainId: arcTestnet.id,
     functionName: slugMode ? "getLinkStatusBySlug" : "getLinkStatus",
     args: slugMode ? (slug ? [slug] : undefined) : linkId ? [linkId] : undefined,
     query: { enabled },
@@ -78,6 +81,7 @@ export function PayLinkView({ linkId, slug, routeKey }: PayLinkViewProps) {
   const payableRead = useReadContract({
     address: flowLinkContractAddress,
     abi: flowLinkV4Abi,
+    chainId: arcTestnet.id,
     functionName: slugMode ? "isPayableBySlug" : "isPayable",
     args: slugMode ? (slug ? [slug] : undefined) : linkId ? [linkId] : undefined,
     query: { enabled },
@@ -88,13 +92,15 @@ export function PayLinkView({ linkId, slug, routeKey }: PayLinkViewProps) {
   const isGroup = link?.mode === 3;
   const payability = Boolean(payableRead.data);
   const loading = Boolean(enabled && (linkRead.isLoading || statusRead.isLoading || payableRead.isLoading || (slugMode && slugIdRead.isLoading)));
-  const invalid = !validRoute || status?.exists === false || Boolean((linkRead.error || slugIdRead.error) && !link);
+  const invalid = !validRoute || status?.exists === false;
+  const readUnavailable = Boolean(!loading && !invalid && !link && (linkRead.error || slugIdRead.error || statusRead.error || payableRead.error));
   const canWrite = Boolean(isConnected && chainId === arcTestnet.id && flowLinkContractAddress);
   const canPay = Boolean(link && !isGroup && payability && canWrite);
 
   const contributorsRead = useReadContract({
     address: flowLinkContractAddress,
     abi: flowLinkV4Abi,
+    chainId: arcTestnet.id,
     functionName: "getGroupContributors",
     args: resolvedLinkId ? [resolvedLinkId] : undefined,
     query: { enabled: Boolean(enabled && isGroup && resolvedLinkId) },
@@ -103,6 +109,7 @@ export function PayLinkView({ linkId, slug, routeKey }: PayLinkViewProps) {
   const contributionRead = useReadContract({
     address: flowLinkContractAddress,
     abi: flowLinkV4Abi,
+    chainId: arcTestnet.id,
     functionName: "getGroupContribution",
     args: resolvedLinkId && address ? [resolvedLinkId, address] : undefined,
     query: { enabled: Boolean(enabled && isGroup && resolvedLinkId && address) },
@@ -234,6 +241,11 @@ export function PayLinkView({ linkId, slug, routeKey }: PayLinkViewProps) {
             <LoadingSkeleton rows={3} />
           </aside>
         </section>
+      ) : readUnavailable ? (
+        <InvalidState
+          title="Switch back to Arc Testnet"
+          body="Switch back to Arc Testnet to view and pay this FlowLink. If the page still does not load, the Arc Testnet read may be temporarily unavailable."
+        />
       ) : invalid || !link ? (
         <InvalidState title="Payment page not found" body="This FlowLink payment page does not exist on the Arc Testnet contract." />
       ) : (

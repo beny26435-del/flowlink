@@ -15,7 +15,7 @@ Arc is an EVM-compatible L1 built for stablecoin-native financial apps. Arc uses
 - TypeScript service modules for future backend/frontend integration.
 - Minimal Next.js frontend for create, pay/contribute/refund, dashboard, profile, and public slug flows.
 - Arc Testnet config for viem.
-- Arc App Kit Send integration for compact funding assistance.
+- Arc App Kit Send and Bridge integration for compact funding assistance.
 - No database.
 - No ERC20 payment flow or App Kit Unified Balance payment flow yet.
 
@@ -27,7 +27,7 @@ This is not an ERC20 `transferFrom` flow. Do not mix native value amounts with E
 
 The multi-mode contract still uses native Arc USDC through `msg.value`. Arc App Kit is used around FlowLink as a funding and stablecoin operations helper. FlowLink handles checkout and receipts. Arc App Kit helps users prepare and move USDC.
 
-The current App Kit integration exposes same-chain Send USDC on Arc and Bridge USDC to Arc through the connected browser wallet and the official Viem adapter. It does not replace the FlowLink contract payment. App Kit Bridge helps users fund their Arc wallet before checkout; after bridging, the user still completes the FlowLink payment with native Arc USDC. Unified Balance remains future work until it is wired, tested, and represented honestly in the UI.
+The current App Kit integration exposes same-chain Send USDC on Arc and bidirectional Bridge between Ethereum Sepolia and Arc Testnet through the connected browser wallet and the official Viem adapter. It does not replace the FlowLink contract payment. App Kit Bridge helps users move USDC before or after checkout; after bridging to Arc, the user still completes the FlowLink payment with native Arc USDC. Unified Balance remains future work until it is wired, tested, and represented honestly in the UI.
 
 ## Product Modes
 
@@ -277,6 +277,7 @@ NEXT_PUBLIC_ETHEREUM_SEPOLIA_RPC_URL=https://11155111.rpc.thirdweb.com
 The app includes:
 
 - `/`: product overview and deployed contract link.
+- `/bridge`: dedicated Arc App Kit Bridge flow for moving USDC between Ethereum Sepolia and Arc Testnet before checkout.
 - `/create`: create a Payment Link, Invoice, Unlock, or Group link with a public slug.
 - `/p/:slug`: primary public payment page.
 - `/pay/:id`: numeric technical/backward-compatible payment page.
@@ -292,10 +293,21 @@ Payment links still use native Arc USDC through `msg.value`. The frontend does n
 FlowLink includes a compact, collapsed App Kit funding center on public payment pages and public profiles. It says: “FlowLink handles checkout and receipts. Arc App Kit helps users prepare and move USDC.”
 
 - Implemented: App Kit Send for same-chain USDC transfers on Arc Testnet using the connected browser wallet and `@circle-fin/adapter-viem-v2`.
-- Implemented: App Kit Bridge for USDC movement from Ethereum Sepolia to Arc Testnet using `kit.bridge({ from: { adapter, chain: "Ethereum_Sepolia" }, to: { adapter, chain: "Arc_Testnet" }, amount })`.
-- Supported bridge route: Ethereum Sepolia → Arc Testnet.
-- Bridge funds the connected wallet on Arc Testnet, not the FlowLink recipient by default.
+- Implemented: App Kit Bridge for USDC movement between Ethereum Sepolia and Arc Testnet using `kit.bridge(...)` with official `BridgeChain.Ethereum_Sepolia` and `BridgeChain.Arc_Testnet` enum values.
+- Bridge is available from `/bridge`. Pay pages and public profiles link to `/bridge` with an optional amount and a sanitized internal `returnTo` path.
+- Supported bridge routes: Ethereum Sepolia → Arc Testnet and Arc Testnet → Ethereum Sepolia.
+- Bridge funds the connected wallet on the destination network, not the FlowLink recipient.
+- After bridging, users return to checkout and manually complete the FlowLink payment with native Arc USDC. FlowLink does not auto-pay or call the contract after Bridge.
 - Bridge may involve source-chain approval, source-chain burn/transfer, attestation or bridge processing, and destination completion handled by App Kit.
+- The Bridge page shows a compact transaction stepper for wallet confirmation, source transaction, bridge processing, and destination completion. It only shows transaction links when App Kit returns real transaction hashes, and it does not claim completion unless the SDK reports completion.
+- Pay pages do not switch wallets to Ethereum Sepolia inline. The dedicated Bridge page owns source-chain switching so checkout pages stay focused on Arc Testnet contract reads and payments.
+- The Bridge page switches networks through the injected wallet provider with EIP-1193 `wallet_switchEthereumChain`, and can request adding Ethereum Sepolia or Arc Testnet with `wallet_addEthereumChain` if a network is missing.
+- The bridge token is always USDC. The bridge amount is a USDC amount, not ETH.
+- Sepolia USDC is read from the ERC20 token contract configured by `NEXT_PUBLIC_SEPOLIA_USDC_ADDRESS`.
+- The Bridge page focuses on USDC balances. Sepolia ETH is still required for gas, but it is not shown in the main bridge card unless an error requires gas guidance.
+- Arc Testnet uses native USDC for both bridge value and gas. The UI shows it as the Arc USDC balance.
+- The Bridge page reads Sepolia and Arc balances with chain-specific public clients, so balances do not depend on the wallet currently being switched to that chain.
+- `NEXT_PUBLIC_ARC_TESTNET_USDC_ADDRESS` is optional future configuration for ERC20 or system-contract reads. The main Arc Testnet USDC balance uses native balance reads and does not require an ERC20 address.
 - Not yet implemented: App Kit Unified Balance. The UI labels it as coming next and does not fake success.
 - Checkout remains primary: paying a FlowLink still calls the FlowLink contract with native Arc USDC through `msg.value`.
 

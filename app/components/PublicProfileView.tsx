@@ -267,10 +267,11 @@ function TipProfileCard({
   const [error, setError] = useState("");
   const minimumTipAmount = stats?.[2] ?? profile.minimumTipAmount;
   const tipsEnabled = stats?.[3] ?? profile.tipsEnabled;
+  const amountValidation = getTipAmountValidation(amount, minimumTipAmount);
 
   useEffect(() => {
-    if (!amount && minimumTipAmount > 0n) setAmount(formatNativeUsdcAmount(minimumTipAmount));
-  }, [amount, minimumTipAmount]);
+    setAmount(minimumTipAmount > 0n ? formatNativeUsdcAmount(minimumTipAmount) : "");
+  }, [minimumTipAmount, owner]);
 
   async function handleTip() {
     if (!flowLinkContractAddress || !publicClient) return;
@@ -278,21 +279,17 @@ function TipProfileCard({
     setTxHash(null);
     setConfirmedAmount(null);
 
+    const validation = getTipAmountValidation(amount, minimumTipAmount);
+    if (validation) {
+      setError(validation);
+      return;
+    }
+
     let parsed: bigint;
     try {
       parsed = parseNativeUsdcAmount(amount);
     } catch {
       setError("Enter a valid native Arc USDC tip amount.");
-      return;
-    }
-
-    if (parsed <= 0n) {
-      setError("Tip amount must be greater than zero.");
-      return;
-    }
-
-    if (minimumTipAmount > 0n && parsed < minimumTipAmount) {
-      setError(`Minimum tip is ${formatNativeUsdcAmount(minimumTipAmount)} native Arc USDC.`);
       return;
     }
 
@@ -343,10 +340,14 @@ function TipProfileCard({
               value={amount}
               inputMode="decimal"
               placeholder={minimumTipAmount > 0n ? formatNativeUsdcAmount(minimumTipAmount) : "1.00"}
-              onChange={(event) => setAmount(event.target.value)}
+              onChange={(event) => {
+                setAmount(event.target.value);
+                setError("");
+              }}
             />
+            {amountValidation && <small>{amountValidation}</small>}
           </label>
-          <Button type="button" disabled={!isConnected || chainId !== arcTestnet.id || isPending || address?.toLowerCase() === owner.toLowerCase()} onClick={handleTip}>
+          <Button type="button" disabled={Boolean(amountValidation) || !isConnected || chainId !== arcTestnet.id || isPending || address?.toLowerCase() === owner.toLowerCase()} onClick={handleTip}>
             {isPending ? "Sending tip..." : "Send tip"}
           </Button>
         </div>
@@ -409,6 +410,21 @@ function makeEmptyProfile(owner?: Address): Profile | undefined {
 
 function shortAddress(address: Address) {
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
+}
+
+function getTipAmountValidation(amount: string, minimumTipAmount: bigint): string {
+  if (!amount.trim()) return "Enter an amount";
+
+  let parsed: bigint;
+  try {
+    parsed = parseNativeUsdcAmount(amount);
+  } catch {
+    return "Enter a valid native Arc USDC tip amount.";
+  }
+
+  if (parsed <= 0n) return "Tip amount must be greater than zero.";
+  if (minimumTipAmount > 0n && parsed < minimumTipAmount) return `Minimum tip is ${formatNativeUsdcAmount(minimumTipAmount)} native Arc USDC.`;
+  return "";
 }
 
 function DataRow({ label, value }: { label: string; value: ReactNode }) {

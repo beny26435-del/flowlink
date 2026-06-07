@@ -11,6 +11,48 @@ export const APP_KIT_BRIDGE_DESTINATION_CHAIN = BridgeChain.Arc_Testnet;
 export const APP_KIT_BRIDGE_SOURCE_CHAIN_ID = sepolia.id;
 export const APP_KIT_BRIDGE_DESTINATION_CHAIN_ID = arcTestnet.id;
 
+export type BridgeDirection = "sepolia-to-arc" | "arc-to-sepolia";
+
+export type BridgeRoute = {
+  direction: BridgeDirection;
+  sourceChain: BridgeChain;
+  sourceChainId: number;
+  sourceName: string;
+  sourceShortName: string;
+  destinationChain: BridgeChain;
+  destinationChainId: number;
+  destinationName: string;
+  destinationShortName: string;
+  token: "USDC";
+};
+
+const BRIDGE_ROUTES = {
+  "sepolia-to-arc": {
+    direction: "sepolia-to-arc",
+    sourceChain: BridgeChain.Ethereum_Sepolia,
+    sourceChainId: sepolia.id,
+    sourceName: "Ethereum Sepolia",
+    sourceShortName: "Sepolia",
+    destinationChain: BridgeChain.Arc_Testnet,
+    destinationChainId: arcTestnet.id,
+    destinationName: "Arc Testnet",
+    destinationShortName: "Arc",
+    token: "USDC",
+  },
+  "arc-to-sepolia": {
+    direction: "arc-to-sepolia",
+    sourceChain: BridgeChain.Arc_Testnet,
+    sourceChainId: arcTestnet.id,
+    sourceName: "Arc Testnet",
+    sourceShortName: "Arc",
+    destinationChain: BridgeChain.Ethereum_Sepolia,
+    destinationChainId: sepolia.id,
+    destinationName: "Ethereum Sepolia",
+    destinationShortName: "Sepolia",
+    token: "USDC",
+  },
+} as const satisfies Record<BridgeDirection, BridgeRoute>;
+
 export type AppKitConfigStatus = {
   sdkAvailable: boolean;
   viemAdapterAvailable: boolean;
@@ -27,8 +69,7 @@ export type AppKitBridgeCapabilityStatus = {
   enabled: boolean;
   ready: boolean;
   publicKitKeyAvailable: boolean;
-  sourceChain: typeof APP_KIT_BRIDGE_SOURCE_CHAIN;
-  destinationChain: typeof APP_KIT_BRIDGE_DESTINATION_CHAIN;
+  routes: BridgeRoute[];
   missing: string[];
   reason?: string;
 };
@@ -72,7 +113,22 @@ export type AppKitBridgeInput = {
   currentChainId?: number;
 };
 
-export type AppKitBridgeStatus = "idle" | "setup-needed" | "switch-source-chain" | "preparing" | "wallet-confirmation" | "submitted" | "bridging" | "completed" | "failed";
+export type AppKitGenericBridgeInput = AppKitBridgeInput & {
+  direction: BridgeDirection;
+};
+
+export type AppKitBridgeStatus =
+  | "idle"
+  | "setup-needed"
+  | "wallet-not-connected"
+  | "wrong-source-chain"
+  | "switching-network"
+  | "preparing"
+  | "wallet-confirmation"
+  | "submitted"
+  | "bridging"
+  | "completed"
+  | "failed";
 
 export type NormalizedAppKitBridgeStep = {
   name: string;
@@ -85,14 +141,25 @@ export type NormalizedAppKitBridgeStep = {
 
 export type AppKitBridgeResult = {
   status: AppKitBridgeStatus;
-  sourceChain: typeof APP_KIT_BRIDGE_SOURCE_CHAIN;
-  destinationChain: typeof APP_KIT_BRIDGE_DESTINATION_CHAIN;
+  direction: BridgeDirection;
+  sourceChain: BridgeChain;
+  destinationChain: BridgeChain;
   amount: string;
   txHashes: string[];
   steps: NormalizedAppKitBridgeStep[];
   rawResult?: BridgeResult;
   errorMessage?: string;
 };
+
+const BRIDGE_TX_HASH_KEYS = new Set([
+  "approvalTxHash",
+  "sourceTxHash",
+  "destinationTxHash",
+  "transactionHash",
+  "txHash",
+  "burnTxHash",
+  "mintTxHash",
+]);
 
 export function isAppKitConfigured(): boolean {
   return getAppKitConfigStatus().sendReady;
@@ -118,7 +185,7 @@ export function getAppKitConfigStatus(): AppKitConfigStatus {
         ? "NEXT_PUBLIC_APP_KIT_KEY is configured for browser SDK initialization."
         : "No public App Kit key is configured. Add NEXT_PUBLIC_APP_KIT_KEY if your Circle setup requires one.",
       bridgeStatus.ready
-        ? "Bridge is enabled for Ethereum Sepolia to Arc Testnet funding."
+        ? "Bridge is enabled between Ethereum Sepolia and Arc Testnet."
         : "Bridge requires NEXT_PUBLIC_APP_KIT_BRIDGE_ENABLED=true and NEXT_PUBLIC_APP_KIT_KEY.",
       "Unified Balance is intentionally disabled until that flow is wired end to end.",
     ],
@@ -147,7 +214,7 @@ export function getAppKitCapabilities(): AppKitCapabilities {
     bridgeToArc: {
       available: status.bridgeReady,
       label: "Bridge USDC to Arc",
-      description: "Use Arc App Kit to move USDC from Ethereum Sepolia to Arc Testnet before checkout.",
+      description: "Use Arc App Kit to move USDC between Ethereum Sepolia and Arc Testnet before checkout.",
     },
     unifiedBalance: {
       available: status.unifiedBalanceReady,
@@ -158,25 +225,40 @@ export function getAppKitCapabilities(): AppKitCapabilities {
 }
 
 export function getBridgeSourceChains() {
-  return [
-    {
-      chain: APP_KIT_BRIDGE_SOURCE_CHAIN,
-      chainId: APP_KIT_BRIDGE_SOURCE_CHAIN_ID,
-      name: "Ethereum Sepolia",
-    },
-  ] as const;
+  return getSupportedBridgeRoutes().map((route) => ({
+    chain: route.sourceChain,
+    chainId: route.sourceChainId,
+    name: route.sourceName,
+  }));
 }
 
-export function getDefaultBridgeRoute() {
+export function getSupportedBridgeRoutes(): BridgeRoute[] {
+  return [BRIDGE_ROUTES["sepolia-to-arc"], BRIDGE_ROUTES["arc-to-sepolia"]];
+}
+
+export function getDefaultBridgeRoute(direction: BridgeDirection = "sepolia-to-arc"): BridgeRoute {
+  return BRIDGE_ROUTES[direction];
+}
+
+export function canBridgeDirection(direction: BridgeDirection) {
+  const capability = getBridgeCapabilityStatus();
   return {
-    sourceChain: APP_KIT_BRIDGE_SOURCE_CHAIN,
-    sourceChainId: APP_KIT_BRIDGE_SOURCE_CHAIN_ID,
-    sourceName: "Ethereum Sepolia",
-    destinationChain: APP_KIT_BRIDGE_DESTINATION_CHAIN,
-    destinationChainId: APP_KIT_BRIDGE_DESTINATION_CHAIN_ID,
-    destinationName: "Arc Testnet",
-    token: "USDC",
-  } as const;
+    ok: capability.ready && Boolean(BRIDGE_ROUTES[direction]),
+    reason: capability.ready ? undefined : capability.reason,
+  };
+}
+
+export function getRequiredSourceWagmiChain(direction: BridgeDirection) {
+  return direction === "sepolia-to-arc" ? sepolia : arcTestnet;
+}
+
+export function getDestinationWagmiChain(direction: BridgeDirection) {
+  return direction === "sepolia-to-arc" ? arcTestnet : sepolia;
+}
+
+export function getBridgeDirectionLabel(direction: BridgeDirection) {
+  const route = getDefaultBridgeRoute(direction);
+  return `${route.sourceName} → ${route.destinationName}`;
 }
 
 export function getBridgeCapabilityStatus(): AppKitBridgeCapabilityStatus {
@@ -191,16 +273,17 @@ export function getBridgeCapabilityStatus(): AppKitBridgeCapabilityStatus {
     enabled,
     ready: enabled && publicKitKeyAvailable,
     publicKitKeyAvailable,
-    sourceChain: APP_KIT_BRIDGE_SOURCE_CHAIN,
-    destinationChain: APP_KIT_BRIDGE_DESTINATION_CHAIN,
+    routes: getSupportedBridgeRoutes(),
     missing,
     reason: missing.length > 0 ? `Bridge setup needed: ${missing.join(", ")}.` : undefined,
   };
 }
 
-export function canUseBridge(input: { connected: boolean; currentChainId?: number; hasProvider: boolean }):
+export function canUseBridge(input: { connected: boolean; currentChainId?: number; hasProvider: boolean; direction?: BridgeDirection }):
   | { ok: true; status: "ready" }
-  | { ok: false; status: "setup-needed" | "wallet-not-connected" | "switch-source-chain"; reason: string } {
+  | { ok: false; status: "setup-needed" | "wallet-not-connected" | "wrong-source-chain"; reason: string } {
+  const direction = input.direction ?? "sepolia-to-arc";
+  const route = getDefaultBridgeRoute(direction);
   const bridgeStatus = getBridgeCapabilityStatus();
   if (!bridgeStatus.ready) {
     return { ok: false, status: "setup-needed", reason: bridgeStatus.reason ?? "Arc App Kit Bridge is not configured." };
@@ -210,8 +293,8 @@ export function canUseBridge(input: { connected: boolean; currentChainId?: numbe
     return { ok: false, status: "wallet-not-connected", reason: "Connect a wallet to use Arc App Kit Bridge." };
   }
 
-  if (input.currentChainId !== APP_KIT_BRIDGE_SOURCE_CHAIN_ID) {
-    return { ok: false, status: "switch-source-chain", reason: "Switch to Ethereum Sepolia to bridge USDC to Arc." };
+  if (input.currentChainId !== route.sourceChainId) {
+    return { ok: false, status: "wrong-source-chain", reason: `Switch to ${route.sourceName} to bridge USDC.` };
   }
 
   return { ok: true, status: "ready" };
@@ -250,13 +333,19 @@ export async function sendUsdcOnArcWithAppKit(input: AppKitSendInput): Promise<A
 }
 
 export async function bridgeUsdcToArc(input: AppKitBridgeInput): Promise<AppKitBridgeResult> {
+  return bridgeUsdc({ ...input, direction: "sepolia-to-arc" });
+}
+
+export async function bridgeUsdc(input: AppKitGenericBridgeInput): Promise<AppKitBridgeResult> {
+  const route = getDefaultBridgeRoute(input.direction);
   const bridgeStatus = getBridgeCapabilityStatus();
 
   if (!bridgeStatus.ready) {
     return {
       status: "setup-needed",
-      sourceChain: APP_KIT_BRIDGE_SOURCE_CHAIN,
-      destinationChain: APP_KIT_BRIDGE_DESTINATION_CHAIN,
+      direction: input.direction,
+      sourceChain: route.sourceChain,
+      destinationChain: route.destinationChain,
       amount: input.amount,
       txHashes: [],
       steps: [],
@@ -264,15 +353,16 @@ export async function bridgeUsdcToArc(input: AppKitBridgeInput): Promise<AppKitB
     };
   }
 
-  if (input.currentChainId !== undefined && input.currentChainId !== APP_KIT_BRIDGE_SOURCE_CHAIN_ID) {
+  if (input.currentChainId !== undefined && input.currentChainId !== route.sourceChainId) {
     return {
-      status: "switch-source-chain",
-      sourceChain: APP_KIT_BRIDGE_SOURCE_CHAIN,
-      destinationChain: APP_KIT_BRIDGE_DESTINATION_CHAIN,
+      status: "wrong-source-chain",
+      direction: input.direction,
+      sourceChain: route.sourceChain,
+      destinationChain: route.destinationChain,
       amount: input.amount,
       txHashes: [],
       steps: [],
-      errorMessage: "Switch to Ethereum Sepolia to bridge USDC to Arc.",
+      errorMessage: `Switch to ${route.sourceName} to bridge USDC.`,
     };
   }
 
@@ -293,10 +383,10 @@ export async function bridgeUsdcToArc(input: AppKitBridgeInput): Promise<AppKitB
 
     const kit = createAppKitClient();
     const result = await kit.bridge({
-      from: { adapter, chain: APP_KIT_BRIDGE_SOURCE_CHAIN },
+      from: { adapter, chain: route.sourceChain },
       to: {
         adapter,
-        chain: APP_KIT_BRIDGE_DESTINATION_CHAIN,
+        chain: route.destinationChain,
         recipientAddress: input.destinationAddress,
       },
       amount: input.amount,
@@ -304,25 +394,28 @@ export async function bridgeUsdcToArc(input: AppKitBridgeInput): Promise<AppKitB
       config: { transferSpeed: TransferSpeed.FAST },
     });
 
-    return normalizeBridgeResult(result, input.amount);
+    return normalizeBridgeResult(result, input.amount, route);
   } catch (caught) {
     return {
       status: "failed",
-      sourceChain: APP_KIT_BRIDGE_SOURCE_CHAIN,
-      destinationChain: APP_KIT_BRIDGE_DESTINATION_CHAIN,
+      direction: input.direction,
+      sourceChain: route.sourceChain,
+      destinationChain: route.destinationChain,
       amount: input.amount,
       txHashes: [],
       steps: [],
-      errorMessage: normalizeAppKitError(caught),
+      errorMessage: normalizeAppKitError(caught, input.direction),
     };
   }
 }
 
-export function normalizeAppKitError(error: unknown): string {
+export function normalizeAppKitError(error: unknown, direction: BridgeDirection = "sepolia-to-arc"): string {
   if (error instanceof Error) {
     const message = error.message;
     if (/user rejected|user denied|4001/i.test(message)) return "Wallet request was rejected. Start the bridge again when you are ready.";
-    if (/insufficient.*gas|gas required exceeds|intrinsic gas/i.test(message)) return "The source wallet does not have enough Sepolia ETH for gas.";
+    if (/insufficient.*gas|gas required exceeds|intrinsic gas/i.test(message)) {
+      return direction === "arc-to-sepolia" ? "You may need native USDC on Arc for gas." : "You may need ETH on Sepolia for gas.";
+    }
     if (/insufficient.*USDC|insufficient.*funds|balance/i.test(message)) return "The source wallet may not have enough USDC for this bridge.";
     if (/timeout|timed out|polling/i.test(message)) return "Bridge processing is taking longer than expected. Check the transaction links or try again later.";
     if (/route|unsupported|unavailable/i.test(message)) return "This bridge route is unavailable right now.";
@@ -346,8 +439,9 @@ function getPublicClient({ chain }: { chain: Chain }): PublicClient {
   });
 }
 
-function normalizeBridgeResult(result: BridgeResult, amount: string): AppKitBridgeResult {
-  const steps = result.steps.map((step) => ({
+export function normalizeBridgeResult(result: BridgeResult, amount: string, route: BridgeRoute): AppKitBridgeResult {
+  const rawSteps = Array.isArray(result.steps) ? result.steps : [];
+  const steps = rawSteps.map((step) => ({
     name: step.name,
     state: step.state,
     txHash: step.txHash,
@@ -355,19 +449,53 @@ function normalizeBridgeResult(result: BridgeResult, amount: string): AppKitBrid
     errorMessage: step.errorMessage,
     errorCategory: step.errorCategory,
   }));
-  const txHashes = steps.flatMap((step) => (step.txHash ? [step.txHash] : []));
+  const txHashes = uniqueStrings([...steps.flatMap((step) => (step.txHash ? [step.txHash] : [])), ...extractBridgeTxHashes(result)]);
   const erroredStep = steps.find((step) => step.state === "error");
 
   return {
     status: result.state === "success" ? "completed" : result.state === "error" ? "failed" : "bridging",
-    sourceChain: APP_KIT_BRIDGE_SOURCE_CHAIN,
-    destinationChain: APP_KIT_BRIDGE_DESTINATION_CHAIN,
+    direction: route.direction,
+    sourceChain: route.sourceChain,
+    destinationChain: route.destinationChain,
     amount,
     txHashes,
     steps,
     rawResult: result,
     errorMessage: erroredStep?.errorMessage,
   };
+}
+
+function extractBridgeTxHashes(value: unknown, seen = new WeakSet<object>()): string[] {
+  if (!value || typeof value !== "object") return [];
+  if (seen.has(value)) return [];
+  seen.add(value);
+
+  const hashes: string[] = [];
+  for (const [key, nested] of Object.entries(value)) {
+    if (typeof nested === "string" && BRIDGE_TX_HASH_KEYS.has(key) && isTxHash(nested)) {
+      hashes.push(nested);
+      continue;
+    }
+
+    if (Array.isArray(nested)) {
+      for (const item of nested) hashes.push(...extractBridgeTxHashes(item, seen));
+      continue;
+    }
+
+    if (nested && typeof nested === "object") {
+      hashes.push(...extractBridgeTxHashes(nested, seen));
+    }
+  }
+
+  return hashes;
+}
+
+function uniqueStrings(values: string[]): string[] {
+  return [...new Set(values)];
+}
+
+function isTxHash(value: string): boolean {
+  return /^0x[a-fA-F0-9]{64}$/.test(value);
 }
 
 function isPositiveDecimal(value: string): boolean {

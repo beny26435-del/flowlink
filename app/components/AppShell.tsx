@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { AnimatedBackground } from "./AnimatedBackground";
+import { WalletConnectButton } from "./WalletConnectButton";
 
 export function AppShell({ children }: { children: ReactNode }) {
   return (
@@ -14,6 +15,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <nav className="nav">
           <Link href="/create">Create</Link>
           <Link href="/dashboard">Dashboard</Link>
+          <WalletConnectButton />
         </nav>
       </header>
       <main className="page-shell">{children}</main>
