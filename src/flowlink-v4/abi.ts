@@ -1,4 +1,4 @@
-import artifact from "../../out/FlowLinkV4.sol/FlowLinkV4.json";
+import flowLinkV4AbiJson from "./FlowLinkV4.abi.json";
 import type { Abi } from "viem";
 
-export const flowLinkV4Abi = artifact.abi as Abi;
+export const flowLinkV4Abi = flowLinkV4AbiJson as Abi;
