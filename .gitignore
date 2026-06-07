@@ -8,4 +8,4 @@ dist/
 coverage/
 .DS_Store
 *.log
-lib/
+/lib/
