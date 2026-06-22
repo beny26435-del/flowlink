@@ -53,18 +53,39 @@ export default function OpenGraphImage() {
                 alignItems: "center",
                 background: "linear-gradient(135deg, #66f2bd, #75e7ff)",
                 borderRadius: "24px",
+                border: "1px solid rgba(126,255,207,0.32)",
                 boxShadow: "0 18px 44px rgba(102,242,189,0.22)",
-                color: "#06111c",
                 display: "flex",
-                fontSize: "48px",
-                fontWeight: 900,
                 height: "72px",
                 justifyContent: "center",
                 lineHeight: 1,
+                position: "relative",
                 width: "72px",
               }}
             >
-              A
+              <div
+                style={{
+                  border: "9px solid transparent",
+                  borderRadius: "999px",
+                  borderBottomColor: "#06111c",
+                  borderLeftColor: "#06111c",
+                  borderTopColor: "#06111c",
+                  height: "38px",
+                  transform: "rotate(-18deg)",
+                  width: "38px",
+                }}
+              />
+              <div
+                style={{
+                  background: "#ffffff",
+                  borderRadius: "999px",
+                  height: "11px",
+                  position: "absolute",
+                  right: "17px",
+                  top: "17px",
+                  width: "11px",
+                }}
+              />
             </div>
             <div style={{ display: "flex", flexDirection: "column" }}>
               <div style={{ fontSize: "44px", fontWeight: 850, letterSpacing: "-1px" }}>Arclet</div>

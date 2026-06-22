@@ -17,6 +17,14 @@ export type WalletProvider = {
   removeListener?: (event: string, listener: (...args: unknown[]) => void) => void;
 };
 
+type Eip6963ProviderDetail = {
+  info?: {
+    name?: string;
+    rdns?: string;
+  };
+  provider?: WalletProvider;
+};
+
 export type WalletConnectorLike = {
   id?: string;
   name?: string;
@@ -89,7 +97,7 @@ export function getInjectedProviders(): WalletProvider[] {
 export async function getWalletProvider(connector?: WalletConnectorLike, options: WalletProviderOptions = {}): Promise<WalletProvider | undefined> {
   const connectorProvider = connector?.getProvider ? await connector.getProvider().catch(() => undefined) : undefined;
   const connectorWalletProvider = isWalletProvider(connectorProvider) ? connectorProvider : undefined;
-  const injectedProviders = getInjectedProviders();
+  const injectedProviders = [...getInjectedProviders(), ...(await getEip6963Providers())];
   const candidates = uniqueProviders([connectorWalletProvider, ...injectedProviders].filter(isWalletProvider));
   const preferMetaMask = options.preferMetaMask ?? shouldPreferMetaMask(connector);
   const accountMatchedProvider = options.connectedAddress ? await findProviderForConnectedAddress(candidates, options.connectedAddress, preferMetaMask) : undefined;
@@ -106,7 +114,7 @@ export async function getWalletProvider(connector?: WalletConnectorLike, options
 
 export async function switchOrAddWalletChain(input: { chain: WalletChainTarget; connector?: WalletConnectorLike; connectedAddress?: string }): Promise<number | undefined> {
   const { chain, connector, connectedAddress } = input;
-  const provider = await getWalletProvider(connector, { connectedAddress });
+  const provider = await getWalletProvider(connector, { connectedAddress, preferMetaMask: true });
   if (!provider) throw new Error("Wallet provider not available.");
 
   const chainIdHex = toHexChainId(chain.chainId);
@@ -276,4 +284,30 @@ async function findProviderForConnectedAddress(
   if (!matches.length) return undefined;
   if (preferMetaMask) return matches.find((provider) => provider.isMetaMask) ?? matches[0];
   return matches[0];
+}
+
+async function getEip6963Providers(): Promise<WalletProvider[]> {
+  if (typeof window === "undefined") return [];
+
+  const discovered = new Map<string, WalletProvider>();
+  const targetWindow = window as Window & {
+    addEventListener: Window["addEventListener"];
+    dispatchEvent: Window["dispatchEvent"];
+    removeEventListener: Window["removeEventListener"];
+  };
+
+  const handler = (event: Event) => {
+    const detail = (event as CustomEvent<Eip6963ProviderDetail>).detail;
+    if (!isWalletProvider(detail?.provider)) return;
+
+    const key = detail.info?.rdns ?? detail.info?.name ?? `${discovered.size}`;
+    discovered.set(key, detail.provider);
+  };
+
+  targetWindow.addEventListener("eip6963:announceProvider", handler);
+  targetWindow.dispatchEvent(new Event("eip6963:requestProvider"));
+  await delay(80);
+  targetWindow.removeEventListener("eip6963:announceProvider", handler);
+
+  return [...discovered.values()];
 }

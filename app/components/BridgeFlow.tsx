@@ -70,7 +70,7 @@ export function BridgeFlow({ initialAmount = "", initialDirection = "sepolia-to-
   const route = useMemo(() => getDefaultBridgeRoute(direction), [direction]);
   const destinationChain = useMemo(() => getDestinationWagmiChain(direction), [direction]);
   const sourceChain = useMemo(() => getRequiredSourceWagmiChain(direction), [direction]);
-  const effectiveChainId = observedChainId ?? chainId;
+  const effectiveChainId = chainId ?? observedChainId;
   const hasWalletProvider = Boolean(connector);
   const bridgeCapability = canBridgeDirection(direction);
   const readiness = canUseBridge({ connected: isConnected, currentChainId: effectiveChainId, hasProvider: hasWalletProvider, direction });
@@ -142,8 +142,8 @@ export function BridgeFlow({ initialAmount = "", initialDirection = "sepolia-to-
     setIsSwitchingWalletNetwork(true);
     setStatus("switching-network");
     try {
-      const nextChainId = await switchOrAddWalletChain({ chain: getWalletChainTarget(sourceChain.id), connector, connectedAddress: address });
-      setObservedChainId(nextChainId ?? (await getCurrentWalletChainId(connector, { connectedAddress: address })));
+      await switchOrAddWalletChain({ chain: getWalletChainTarget(sourceChain.id), connector, connectedAddress: address });
+      setObservedChainId(await getCurrentWalletChainId(connector, { connectedAddress: address, preferMetaMask: true }));
       setStatus("idle");
       setBridgeRunState("idle");
     } catch (caught) {
@@ -159,8 +159,8 @@ export function BridgeFlow({ initialAmount = "", initialDirection = "sepolia-to-
     setError("");
     setIsSwitchingWalletNetwork(true);
     try {
-      const nextChainId = await switchOrAddWalletChain({ chain: getWalletChainTarget(destinationChain.id), connector, connectedAddress: address });
-      setObservedChainId(nextChainId ?? (await getCurrentWalletChainId(connector, { connectedAddress: address })));
+      await switchOrAddWalletChain({ chain: getWalletChainTarget(destinationChain.id), connector, connectedAddress: address });
+      setObservedChainId(await getCurrentWalletChainId(connector, { connectedAddress: address, preferMetaMask: true }));
     } catch (caught) {
       setError(getWalletSwitchError(caught, destinationChain.name));
     } finally {
