@@ -8,7 +8,7 @@ import { arcTestnet } from "../../src/arc/chain";
 import { flowLinkV4Abi } from "../../src/flowlink-v4/abi";
 import type { Link, LinkMode, LinkStatus, Profile } from "../../src/flowlink-v4/types";
 import { buildExplorerTxUrl, buildPublicPayUrl, formatNativeUsdcAmount, parseNativeUsdcAmount, validateUsername } from "../../src/flowlink-v4/utils";
-import { FLOWLINK_CONTRACT_MISSING_MESSAGE, flowLinkContractAddress, hasFlowLinkContractAddress } from "../config";
+import { FLOWLINK_CONTRACT_MISSING_MESSAGE, flowLinkContractAddress, hasArcletContractAddress } from "../config";
 import { productText } from "../lib/displayText";
 import { formatDateTime, getGroupProgress, getModeText, normalizeLinkStatus, normalizePaymentLink, normalizeProfile, type RawLink, type RawProfile } from "../lib/link";
 import { AddressDisplay } from "./AddressDisplay";
@@ -43,7 +43,7 @@ export function PublicProfileView(props: PublicProfileViewProps) {
     abi: flowLinkV4Abi,
     functionName: "getProfileByUsername",
     args: validUsername ? [validUsername] : undefined,
-    query: { enabled: Boolean(hasFlowLinkContractAddress && validUsername && usernameIsValid) },
+    query: { enabled: Boolean(hasArcletContractAddress && validUsername && usernameIsValid) },
   });
 
   const usernameProfile = usernameProfileRead.data ? normalizeProfile(usernameProfileRead.data as RawProfile) : undefined;
@@ -54,7 +54,7 @@ export function PublicProfileView(props: PublicProfileViewProps) {
     abi: flowLinkV4Abi,
     functionName: "getProfileByAddress",
     args: owner ? [owner] : undefined,
-    query: { enabled: Boolean(hasFlowLinkContractAddress && owner && validAddress) },
+    query: { enabled: Boolean(hasArcletContractAddress && owner && validAddress) },
   });
 
   const addressProfile = addressProfileRead.data ? normalizeProfile(addressProfileRead.data as RawProfile) : undefined;
@@ -65,7 +65,7 @@ export function PublicProfileView(props: PublicProfileViewProps) {
     abi: flowLinkV4Abi,
     functionName: "getListedCreatorLinks",
     args: owner ? [owner] : undefined,
-    query: { enabled: Boolean(hasFlowLinkContractAddress && owner) },
+    query: { enabled: Boolean(hasArcletContractAddress && owner) },
   });
 
   const linkIds = useMemo(() => [...((listedIdsRead.data as bigint[] | undefined) ?? [])].reverse(), [listedIdsRead.data]);
@@ -77,7 +77,7 @@ export function PublicProfileView(props: PublicProfileViewProps) {
       functionName: "getLink",
       args: [linkId],
     })),
-    query: { enabled: Boolean(hasFlowLinkContractAddress && linkIds.length > 0) },
+    query: { enabled: Boolean(hasArcletContractAddress && linkIds.length > 0) },
   });
 
   const statusesRead = useReadContracts({
@@ -87,7 +87,7 @@ export function PublicProfileView(props: PublicProfileViewProps) {
       functionName: "getLinkStatus",
       args: [linkId],
     })),
-    query: { enabled: Boolean(hasFlowLinkContractAddress && linkIds.length > 0) },
+    query: { enabled: Boolean(hasArcletContractAddress && linkIds.length > 0) },
   });
 
   const summaries = useMemo<ListedSummary[]>(() => {
@@ -101,7 +101,7 @@ export function PublicProfileView(props: PublicProfileViewProps) {
     }));
   }, [linkIds, linksRead.data, statusesRead.data]);
 
-  const displayName = productText(profile?.displayName) || (owner ? shortAddress(owner) : "FlowLink profile");
+  const displayName = productText(profile?.displayName) || (owner ? shortAddress(owner) : "Arclet profile");
   const totalVolume = summaries.reduce((sum, item) => sum + (item.link?.amount ?? 0n), 0n);
   const paidCount = summaries.filter((item) => item.status?.paid).length;
   const loading = Boolean(usernameProfileRead.isLoading || addressProfileRead.isLoading || listedIdsRead.isLoading);
@@ -112,13 +112,13 @@ export function PublicProfileView(props: PublicProfileViewProps) {
     abi: flowLinkV4Abi,
     functionName: "getProfileTipStats",
     args: owner ? [owner] : undefined,
-    query: { enabled: Boolean(hasFlowLinkContractAddress && owner && profile?.exists) },
+    query: { enabled: Boolean(hasArcletContractAddress && owner && profile?.exists) },
   });
 
   const tipStats = tipStatsRead.data as readonly [bigint, bigint, bigint, boolean] | undefined;
 
-  if (!hasFlowLinkContractAddress) {
-    return <ProfileNotFound title="FlowLink unavailable" body={FLOWLINK_CONTRACT_MISSING_MESSAGE} />;
+  if (!hasArcletContractAddress) {
+    return <ProfileNotFound title="Arclet unavailable" body={FLOWLINK_CONTRACT_MISSING_MESSAGE} />;
   }
 
   if (validUsername && (!usernameIsValid || usernameNotFound)) {
@@ -155,7 +155,7 @@ export function PublicProfileView(props: PublicProfileViewProps) {
 
       <section className="stats-grid">
         <StatCard label="Listed links" value={summaries.length} detail="Visible on this profile" />
-        <StatCard label="Paid/Funded" value={paidCount} detail="Completed FlowLinks" delay={0.04} />
+        <StatCard label="Paid/Funded" value={paidCount} detail="Completed Arclet links" delay={0.04} />
         <StatCard
           label="Profile tips"
           value={`${formatNativeUsdcAmount(tipStats?.[0] ?? 0n)} USDC`}
@@ -180,8 +180,8 @@ export function PublicProfileView(props: PublicProfileViewProps) {
         <section className="empty-state">
           <div className="empty-orb" />
           <h2>No listed links yet</h2>
-          <p className="page-subtitle">This profile does not have public FlowLinks right now.</p>
-          <Button href="/create">Create your own FlowLink</Button>
+          <p className="page-subtitle">This profile does not have public Arclet links right now.</p>
+          <Button href="/create">Create your own Arclet</Button>
         </section>
       ) : (
         <section className="link-list">
@@ -376,7 +376,7 @@ function ProfileAvatar({ profile, owner }: { profile?: Profile; owner?: Address 
     return <img className="profile-avatar" src={profile.avatarUrl} alt="" />;
   }
 
-  return <div className="profile-avatar fallback-avatar">{owner ? shortAddress(owner).slice(2, 4).toUpperCase() : "FL"}</div>;
+  return <div className="profile-avatar fallback-avatar">{owner ? shortAddress(owner).slice(2, 4).toUpperCase() : "AR"}</div>;
 }
 
 function ProfileNotFound({ title, body }: { title: string; body: string }) {
@@ -386,7 +386,7 @@ function ProfileNotFound({ title, body }: { title: string; body: string }) {
         <div className="empty-orb" />
         <h1 className="page-title">{title}</h1>
         <p className="page-subtitle">{body}</p>
-        <Button href="/create">Create a FlowLink</Button>
+        <Button href="/create">Create an Arclet link</Button>
       </section>
     </PageTransition>
   );

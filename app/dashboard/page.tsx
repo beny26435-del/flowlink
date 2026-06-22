@@ -16,7 +16,7 @@ import { PageHeader } from "../components/PageHeader";
 import { PageTransition } from "../components/PageTransition";
 import { StatCard } from "../components/StatCard";
 import { WalletConnectButton } from "../components/WalletConnectButton";
-import { FLOWLINK_CONTRACT_MISSING_MESSAGE, flowLinkContractAddress, hasFlowLinkContractAddress } from "../config";
+import { FLOWLINK_CONTRACT_MISSING_MESSAGE, flowLinkContractAddress, hasArcletContractAddress } from "../config";
 import { productText } from "../lib/displayText";
 import { formatDateTime, getGroupProgress, getModeText, normalizeLinkStatus, normalizePaymentLink, type RawLink } from "../lib/link";
 import { arcTestnet } from "../../src/arc/chain";
@@ -53,7 +53,7 @@ export default function DashboardPage() {
     abi: flowLinkV4Abi,
     functionName: "getCreatorLinks",
     args: address ? [address] : undefined,
-    query: { enabled: Boolean(hasFlowLinkContractAddress && address) },
+    query: { enabled: Boolean(hasArcletContractAddress && address) },
   });
 
   const linkIds = useMemo(() => [...((creatorLinksRead.data as bigint[] | undefined) ?? [])].reverse(), [creatorLinksRead.data]);
@@ -65,7 +65,7 @@ export default function DashboardPage() {
       functionName: "getLink",
       args: [linkId],
     })),
-    query: { enabled: Boolean(hasFlowLinkContractAddress && linkIds.length > 0) },
+    query: { enabled: Boolean(hasArcletContractAddress && linkIds.length > 0) },
   });
 
   const statusesRead = useReadContracts({
@@ -75,7 +75,7 @@ export default function DashboardPage() {
       functionName: "getLinkStatus",
       args: [linkId],
     })),
-    query: { enabled: Boolean(hasFlowLinkContractAddress && linkIds.length > 0) },
+    query: { enabled: Boolean(hasArcletContractAddress && linkIds.length > 0) },
   });
 
   const summaries = useMemo<Summary[]>(() => {
@@ -104,7 +104,7 @@ export default function DashboardPage() {
       <PageHeader
         eyebrow="Creator dashboard"
         title="Dashboard"
-        subtitle="Manage FlowLink payment links, invoices, unlocks, and group funding links from your connected wallet."
+        subtitle="Manage Arclet payment links, invoices, unlocks, and group funding links from your connected wallet."
         actions={
           <>
             <WalletConnectButton />
@@ -123,19 +123,19 @@ export default function DashboardPage() {
         }
       />
       <NetworkNotice />
-      {!hasFlowLinkContractAddress && <div className="error">{FLOWLINK_CONTRACT_MISSING_MESSAGE}</div>}
+      {!hasArcletContractAddress && <div className="error">{FLOWLINK_CONTRACT_MISSING_MESSAGE}</div>}
 
       {!isConnected ? (
         <section className="empty-state">
           <div className="empty-orb" />
           <h2>Connect your wallet</h2>
-          <p className="page-subtitle">Load the FlowLinks created by your wallet on Arc Testnet.</p>
+          <p className="page-subtitle">Load the Arclet links created by your wallet on Arc Testnet.</p>
           <WalletConnectButton />
         </section>
-      ) : !hasFlowLinkContractAddress ? (
+      ) : !hasArcletContractAddress ? (
         <section className="empty-state">
           <div className="empty-orb" />
-          <h2>FlowLink unavailable</h2>
+          <h2>Arclet unavailable</h2>
           <p className="page-subtitle">{FLOWLINK_CONTRACT_MISSING_MESSAGE}</p>
         </section>
       ) : creatorLinksRead.isLoading ? (
@@ -145,8 +145,8 @@ export default function DashboardPage() {
       ) : linkIds.length === 0 ? (
         <section className="empty-state">
           <div className="empty-orb" />
-          <h2>No FlowLinks yet</h2>
-          <p className="page-subtitle">Create your first FlowLink on Arc Testnet.</p>
+          <h2>No Arclet links yet</h2>
+          <p className="page-subtitle">Create your first Arclet on Arc Testnet.</p>
           <Button href="/create">Create your first link</Button>
         </section>
       ) : (
@@ -170,7 +170,7 @@ export default function DashboardPage() {
             <section className="empty-state">
               <div className="empty-orb" />
               <h2>No links match this filter</h2>
-              <p className="page-subtitle">Try another filter or create a new FlowLink.</p>
+              <p className="page-subtitle">Try another filter or create a new Arclet.</p>
             </section>
           ) : (
             <section className="link-list">

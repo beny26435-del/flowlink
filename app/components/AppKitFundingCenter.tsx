@@ -116,7 +116,7 @@ export function AppKitFundingCenter({ recipient, amount, mode, reference }: AppK
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.24, ease: "easeOut" }}
           >
-            <p className="small">FlowLink handles checkout and receipts. Arc App Kit helps users prepare and move USDC.</p>
+            <p className="small">Arclet handles checkout and receipts. Arc App Kit helps users prepare and move USDC.</p>
 
             <div className="appkit-capability-grid">
               <CapabilityRow title={capabilities.sendUsdcOnArc.label} body={capabilities.sendUsdcOnArc.description} status="Live" active />

@@ -23,6 +23,11 @@ export type WalletConnectorLike = {
   getProvider?: () => Promise<unknown>;
 };
 
+type WalletProviderOptions = {
+  connectedAddress?: string;
+  preferMetaMask?: boolean;
+};
+
 export type WalletChainTarget = {
   chainId: number;
   chainName: string;
@@ -60,43 +65,62 @@ export const ARC_TESTNET_WALLET_CHAIN: WalletChainTarget = {
 };
 
 export function getInjectedProvider(options: { preferMetaMask?: boolean } = {}): WalletProvider | undefined {
-  if (typeof window === "undefined") return undefined;
-
-  const ethereum = (window as unknown as { ethereum?: WalletProvider }).ethereum;
-  if (!ethereum) return undefined;
+  const providers = getInjectedProviders();
+  if (!providers.length) return undefined;
 
   if (options.preferMetaMask) {
-    const metaMaskProvider = ethereum.providers?.find((provider) => provider.isMetaMask);
+    const metaMaskProvider = providers.find((provider) => provider.isMetaMask);
     if (metaMaskProvider) return metaMaskProvider;
   }
 
-  return ethereum;
+  return providers[0];
 }
 
-export async function getWalletProvider(connector?: WalletConnectorLike): Promise<WalletProvider | undefined> {
+export function getInjectedProviders(): WalletProvider[] {
+  if (typeof window === "undefined") return [];
+
+  const ethereum = (window as unknown as { ethereum?: WalletProvider }).ethereum;
+  if (!ethereum) return [];
+
+  const providers = ethereum.providers?.filter(isWalletProvider) ?? [];
+  return providers.length ? uniqueProviders([...providers, ethereum]) : [ethereum];
+}
+
+export async function getWalletProvider(connector?: WalletConnectorLike, options: WalletProviderOptions = {}): Promise<WalletProvider | undefined> {
   const connectorProvider = connector?.getProvider ? await connector.getProvider().catch(() => undefined) : undefined;
-  if (isWalletProvider(connectorProvider)) return connectorProvider;
+  const connectorWalletProvider = isWalletProvider(connectorProvider) ? connectorProvider : undefined;
+  const injectedProviders = getInjectedProviders();
+  const candidates = uniqueProviders([connectorWalletProvider, ...injectedProviders].filter(isWalletProvider));
+  const preferMetaMask = options.preferMetaMask ?? shouldPreferMetaMask(connector);
+  const accountMatchedProvider = options.connectedAddress ? await findProviderForConnectedAddress(candidates, options.connectedAddress, preferMetaMask) : undefined;
 
-  return getInjectedProvider({ preferMetaMask: isMetaMaskConnector(connector) });
+  if (accountMatchedProvider) return accountMatchedProvider;
+  if (preferMetaMask) {
+    const metaMaskProvider = candidates.find((provider) => provider.isMetaMask);
+    if (metaMaskProvider) return metaMaskProvider;
+  }
+  if (connectorWalletProvider) return connectorWalletProvider;
+
+  return getInjectedProvider({ preferMetaMask });
 }
 
-export async function switchOrAddWalletChain(input: { chain: WalletChainTarget; connector?: WalletConnectorLike }): Promise<void> {
-  const { chain, connector } = input;
-  const provider = await getWalletProvider(connector);
+export async function switchOrAddWalletChain(input: { chain: WalletChainTarget; connector?: WalletConnectorLike; connectedAddress?: string }): Promise<number | undefined> {
+  const { chain, connector, connectedAddress } = input;
+  const provider = await getWalletProvider(connector, { connectedAddress });
   if (!provider) throw new Error("Wallet provider not available.");
 
   const chainIdHex = toHexChainId(chain.chainId);
 
   if (process.env.NODE_ENV === "development") {
-    console.log("[FlowLink] switch requested", chain.chainId);
-    console.log("[FlowLink] provider", {
+    console.log("[Arclet] switch requested", chain.chainId);
+    console.log("[Arclet] provider", {
       isMetaMask: provider.isMetaMask,
       isCoinbaseWallet: provider.isCoinbaseWallet,
       isRabby: provider.isRabby,
       connectorId: connector?.id,
       connectorName: connector?.name,
     });
-    console.log("[FlowLink] eth_chainId before", await readProviderChainIdForLog(provider));
+    console.log("[Arclet] eth_chainId before", await readProviderChainIdForLog(provider));
   }
 
   try {
@@ -106,10 +130,10 @@ export async function switchOrAddWalletChain(input: { chain: WalletChainTarget; 
     });
     await waitForWalletChain(provider, chain.chainId);
     if (process.env.NODE_ENV === "development") {
-      console.log("[FlowLink] eth_chainId after", await readProviderChainIdForLog(provider));
-      console.log("[FlowLink] wallet switch success");
+      console.log("[Arclet] eth_chainId after", await readProviderChainIdForLog(provider));
+      console.log("[Arclet] wallet switch success");
     }
-    return;
+    return chain.chainId;
   } catch (caught) {
     if (isUserRejectedError(caught)) throw new Error("Wallet rejected network switch.");
     if (!isUnknownChainError(caught)) throw caught;
@@ -140,17 +164,18 @@ export async function switchOrAddWalletChain(input: { chain: WalletChainTarget; 
     });
     await waitForWalletChain(provider, chain.chainId);
     if (process.env.NODE_ENV === "development") {
-      console.log("[FlowLink] eth_chainId after", await readProviderChainIdForLog(provider));
-      console.log("[FlowLink] wallet switch success");
+      console.log("[Arclet] eth_chainId after", await readProviderChainIdForLog(provider));
+      console.log("[Arclet] wallet switch success");
     }
+    return chain.chainId;
   } catch (caught) {
     if (isUserRejectedError(caught)) throw new Error("Wallet rejected network switch.");
     throw caught;
   }
 }
 
-export async function getCurrentWalletChainId(providerOrConnector?: WalletProvider | WalletConnectorLike): Promise<number | undefined> {
-  const provider = isWalletProvider(providerOrConnector) ? providerOrConnector : await getWalletProvider(providerOrConnector);
+export async function getCurrentWalletChainId(providerOrConnector?: WalletProvider | WalletConnectorLike, options: WalletProviderOptions = {}): Promise<number | undefined> {
+  const provider = isWalletProvider(providerOrConnector) ? providerOrConnector : await getWalletProvider(providerOrConnector, options);
   if (!provider) return undefined;
 
   const chainId = await provider.request({ method: "eth_chainId" });
@@ -165,9 +190,9 @@ function isWalletProvider(provider: unknown): provider is WalletProvider {
   return Boolean(provider && typeof provider === "object" && "request" in provider && typeof (provider as { request?: unknown }).request === "function");
 }
 
-function isMetaMaskConnector(connector: WalletConnectorLike | undefined): boolean {
+function shouldPreferMetaMask(connector: WalletConnectorLike | undefined): boolean {
   const label = `${connector?.id ?? ""} ${connector?.name ?? ""}`.toLowerCase();
-  return label.includes("metamask") || label.includes("meta mask");
+  return label.includes("metamask") || label.includes("meta mask") || label.includes("injected");
 }
 
 async function readProviderChainIdForLog(provider: WalletProvider): Promise<unknown> {
@@ -180,21 +205,35 @@ async function readProviderChainIdForLog(provider: WalletProvider): Promise<unkn
 
 function isUnknownChainError(error: unknown): boolean {
   if (!error || typeof error !== "object") return false;
-  const maybeError = error as { code?: number; message?: string; cause?: unknown };
-  return maybeError.code === 4902 || /unrecognized chain|unknown chain|not added/i.test(maybeError.message ?? "") || isUnknownChainError(maybeError.cause);
+  const maybeError = error as { code?: number; message?: string; cause?: unknown; data?: unknown; error?: unknown; originalError?: unknown };
+  return (
+    maybeError.code === 4902 ||
+    /unrecognized chain|unknown chain|not added/i.test(maybeError.message ?? "") ||
+    isUnknownChainError(maybeError.cause) ||
+    isUnknownChainError(maybeError.data) ||
+    isUnknownChainError(maybeError.error) ||
+    isUnknownChainError(maybeError.originalError)
+  );
 }
 
 function isUserRejectedError(error: unknown): boolean {
   if (!error || typeof error !== "object") return false;
-  const maybeError = error as { code?: number; message?: string; cause?: unknown };
-  return maybeError.code === 4001 || /user rejected|user denied|rejected request/i.test(maybeError.message ?? "") || isUserRejectedError(maybeError.cause);
+  const maybeError = error as { code?: number; message?: string; cause?: unknown; data?: unknown; error?: unknown; originalError?: unknown };
+  return (
+    maybeError.code === 4001 ||
+    /user rejected|user denied|rejected request/i.test(maybeError.message ?? "") ||
+    isUserRejectedError(maybeError.cause) ||
+    isUserRejectedError(maybeError.data) ||
+    isUserRejectedError(maybeError.error) ||
+    isUserRejectedError(maybeError.originalError)
+  );
 }
 
 async function waitForWalletChain(provider: WalletProvider, chainId: number): Promise<void> {
   const targetHex = toHexChainId(chainId).toLowerCase();
   const started = Date.now();
 
-  while (Date.now() - started < 5_000) {
+  while (Date.now() - started < 10_000) {
     try {
       const current = await provider.request({ method: "eth_chainId" });
       if (typeof current === "string" && current.toLowerCase() === targetHex) return;
@@ -203,8 +242,38 @@ async function waitForWalletChain(provider: WalletProvider, chainId: number): Pr
     }
     await delay(120);
   }
+
+  throw new Error("Wallet did not report the requested network after switching.");
 }
 
 function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function uniqueProviders(providers: WalletProvider[]): WalletProvider[] {
+  return Array.from(new Set(providers));
+}
+
+async function findProviderForConnectedAddress(
+  providers: WalletProvider[],
+  connectedAddress: string,
+  preferMetaMask: boolean
+): Promise<WalletProvider | undefined> {
+  const target = connectedAddress.toLowerCase();
+  const matches: WalletProvider[] = [];
+
+  for (const provider of providers) {
+    try {
+      const accounts = await provider.request({ method: "eth_accounts" });
+      if (Array.isArray(accounts) && accounts.some((account) => typeof account === "string" && account.toLowerCase() === target)) {
+        matches.push(provider);
+      }
+    } catch {
+      // Some injected wallets reject account reads while locked; keep checking other candidates.
+    }
+  }
+
+  if (!matches.length) return undefined;
+  if (preferMetaMask) return matches.find((provider) => provider.isMetaMask) ?? matches[0];
+  return matches[0];
 }

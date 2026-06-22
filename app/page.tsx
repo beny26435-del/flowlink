@@ -6,12 +6,12 @@ import { Button } from "./components/Button";
 import { CopyButton } from "./components/CopyButton";
 import { ExplorerLink } from "./components/ExplorerLink";
 import { PageTransition } from "./components/PageTransition";
-import { FLOWLINK_CONTRACT_MISSING_MESSAGE, flowLinkContractAddress, hasFlowLinkContractAddress } from "./config";
+import { FLOWLINK_CONTRACT_MISSING_MESSAGE, flowLinkContractAddress, hasArcletContractAddress } from "./config";
 
 const features = [
   {
     title: "Native Arc USDC",
-    body: "FlowLink uses native Arc value through msg.value, so the payment flow stays direct and stablecoin-native.",
+    body: "Arclet uses native Arc value through msg.value, so the payment flow stays direct and stablecoin-native.",
   },
   {
     title: "Onchain receipts",
@@ -35,9 +35,9 @@ export default function HomePage() {
       <section className="hero-premium">
         <motion.div initial="hidden" animate="visible" variants={{ visible: { transition: { staggerChildren: 0.08 } } }}>
           <motion.p className="eyebrow" variants={fadeUp}>
-            Stablecoin-native checkout
+            Arclet checkout
           </motion.p>
-          <motion.h1 className="hero-title gradient-text" variants={fadeUp}>
+          <motion.h1 className="hero-title gradient-text" variants={fadeUp} aria-label="Stablecoin payment links for Arc">
             <span>Stablecoin</span>
             <span>payment links</span>
             <span>for Arc</span>
@@ -54,7 +54,7 @@ export default function HomePage() {
               View Dashboard
             </Button>
             <Button href="/profile" variant="secondary">
-              Create your FlowLink profile
+              Create your Arclet profile
             </Button>
           </motion.div>
           <motion.div className="hero-funding-note" variants={fadeUp}>
@@ -111,13 +111,13 @@ export default function HomePage() {
       <motion.section className="section" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45, delay: 0.18 }}>
         <div className="page-header">
           <div>
-            <p className="eyebrow">FlowLink contract</p>
+            <p className="eyebrow">Arclet contract</p>
             <h2>Arc Testnet contract</h2>
-            <p className="muted">This demo reads and writes to the FlowLink contract. No database or mocked payment states.</p>
+            <p className="muted">This demo reads and writes to the Arclet contract. No database or mocked payment states.</p>
           </div>
           <span className="badge good">Chain ID 5042002</span>
         </div>
-        {hasFlowLinkContractAddress && flowLinkContractAddress ? (
+        {hasArcletContractAddress && flowLinkContractAddress ? (
           <div className="data-list">
             <div className="data-row">
               <span>Contract address</span>

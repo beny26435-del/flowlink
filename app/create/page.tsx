@@ -14,7 +14,7 @@ import { PageHeader } from "../components/PageHeader";
 import { PageTransition } from "../components/PageTransition";
 import { PaymentPreviewCard, type PreviewMode } from "../components/PaymentPreviewCard";
 import { WalletConnectButton } from "../components/WalletConnectButton";
-import { FLOWLINK_CONTRACT_MISSING_MESSAGE, flowLinkContractAddress, hasFlowLinkContractAddress } from "../config";
+import { FLOWLINK_CONTRACT_MISSING_MESSAGE, flowLinkContractAddress, hasArcletContractAddress } from "../config";
 import { arcTestnet } from "../../src/arc/chain";
 import { flowLinkV4Abi } from "../../src/flowlink-v4/abi";
 import { buildPublicPayUrl, generateRandomSlug, parseNativeUsdcAmount, validateSlug } from "../../src/flowlink-v4/utils";
@@ -54,7 +54,7 @@ export default function CreatePage() {
   const [serviceTitle, setServiceTitle] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [unlockUrl, setUnlockUrl] = useState("");
-  const [slug, setSlug] = useState(() => generateRandomSlug("payment"));
+  const [slug, setSlug] = useState("");
   const [listed, setListed] = useState(true);
   const [created, setCreated] = useState<CreatedLink | null>(null);
   const [error, setError] = useState("");
@@ -77,7 +77,7 @@ export default function CreatePage() {
   const deadlineIsValid = mode === "group" ? Boolean(deadline) : true;
   const slugIsValid = validateSlug(slug);
   const canSubmit = Boolean(
-    hasFlowLinkContractAddress &&
+    hasArcletContractAddress &&
       titleIsValid &&
       isAddress(recipient) &&
       amountIsValid &&
@@ -92,13 +92,13 @@ export default function CreatePage() {
     setError("");
     setCreated(null);
 
-    if (!hasFlowLinkContractAddress || !flowLinkContractAddress) {
+    if (!hasArcletContractAddress || !flowLinkContractAddress) {
       setError(FLOWLINK_CONTRACT_MISSING_MESSAGE);
       return;
     }
 
     if (!address) {
-      setError("Connect a wallet before creating a FlowLink.");
+      setError("Connect a wallet before creating an Arclet link.");
       return;
     }
 
@@ -221,7 +221,7 @@ export default function CreatePage() {
       const paymentUrl = buildPublicPayUrl(window.location.origin, slug);
       setCreated({ linkId, txHash, paymentUrl, slug: slug.trim() });
     } catch (caught) {
-      const message = caught instanceof Error ? caught.message : "Create FlowLink failed.";
+      const message = caught instanceof Error ? caught.message : "Create Arclet failed.";
       setError(message.includes("SlugAlreadyTaken") ? "That payment URL is already taken. Try another one." : message);
     }
   }
@@ -230,14 +230,14 @@ export default function CreatePage() {
     <PageTransition>
       <PageHeader
         eyebrow="Payment link builder"
-        title="Create a FlowLink"
+        title="Create an Arclet link"
         subtitle="Create payment links, invoices, unlocks, and group funding links on Arc Testnet."
         actions={<WalletConnectButton />}
       />
       <NetworkNotice />
-      {!hasFlowLinkContractAddress && <div className="error">{FLOWLINK_CONTRACT_MISSING_MESSAGE}</div>}
+      {!hasArcletContractAddress && <div className="error">{FLOWLINK_CONTRACT_MISSING_MESSAGE}</div>}
 
-      <section className="mode-tabs" aria-label="FlowLink mode">
+      <section className="mode-tabs" aria-label="Arclet mode">
         {modes.map((item) => (
           <button className={mode === item.key ? "mode-tab active" : "mode-tab"} type="button" key={item.key} onClick={() => setMode(item.key)}>
             <span>{item.label}</span>
@@ -317,8 +317,8 @@ export default function CreatePage() {
                 <div className="receipt-header">
                   <div>
                     <span className="badge good pulse">Created</span>
-                    <h2>FlowLink ready</h2>
-                    <p className="muted">Share this FlowLink. Native Arc USDC moves directly through the FlowLink contract.</p>
+                    <h2>Arclet ready</h2>
+                    <p className="muted">Share this Arclet. Native Arc USDC moves directly through the Arclet contract.</p>
                   </div>
                   <motion.span className="success-mark" initial={{ scale: 0.7 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 260, damping: 14 }}>
                     ✓

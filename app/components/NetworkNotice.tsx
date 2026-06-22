@@ -12,7 +12,7 @@ export function NetworkNotice() {
 
   return (
     <motion.div className="notice" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
-      <p>Switch your wallet to Arc Testnet to create or pay FlowLink links.</p>
+      <p>Switch your wallet to Arc Testnet to create or pay Arclet links.</p>
       <button className="secondary-button" type="button" disabled={isPending} onClick={() => switchChain({ chainId: arcTestnet.id })}>
         {isPending ? "Switching..." : "Switch to Arc Testnet"}
       </button>

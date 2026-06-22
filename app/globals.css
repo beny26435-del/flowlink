@@ -198,6 +198,11 @@ button {
   z-index: 20;
 }
 
+.header-main {
+  align-items: center;
+  display: contents;
+}
+
 .brand {
   align-items: center;
   display: inline-flex;
@@ -209,22 +214,36 @@ button {
 
 .brand-mark {
   background:
-    radial-gradient(circle at 30% 25%, white, transparent 18px),
+    radial-gradient(circle at 28% 20%, rgba(255, 255, 255, 0.95), transparent 11px),
+    radial-gradient(circle at 75% 78%, rgba(117, 231, 255, 0.36), transparent 12px),
     linear-gradient(135deg, var(--mint), var(--cyan));
   border-radius: 12px;
-  box-shadow: 0 0 18px rgba(102, 242, 189, 0.16);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.18) inset,
+    0 10px 26px rgba(102, 242, 189, 0.18);
   height: 34px;
+  overflow: hidden;
   position: relative;
   width: 34px;
 }
 
-.brand-mark::after {
-  background: rgba(5, 7, 11, 0.72);
-  border-radius: 8px;
+.brand-mark::before {
+  background: rgba(4, 9, 15, 0.84);
+  clip-path: polygon(50% 13%, 85% 84%, 68% 84%, 58% 62%, 42% 62%, 32% 84%, 15% 84%);
   content: "";
-  inset: 9px 7px 7px 13px;
+  inset: 6px 7px;
   position: absolute;
-  transform: skewX(-18deg);
+}
+
+.brand-mark::after {
+  background: linear-gradient(90deg, var(--mint), rgba(255, 255, 255, 0.86));
+  border-radius: 999px;
+  content: "";
+  height: 3px;
+  left: 14px;
+  position: absolute;
+  top: 20px;
+  width: 7px;
 }
 
 .nav {
@@ -260,6 +279,36 @@ button {
 
 .nav .status-row {
   gap: 7px;
+}
+
+.mobile-menu-toggle {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(205, 235, 255, 0.12);
+  border-radius: 999px;
+  color: var(--text);
+  cursor: pointer;
+  display: none;
+  font-size: 13px;
+  font-weight: 850;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 13px;
+}
+
+.mobile-menu-icon {
+  display: inline-grid;
+  gap: 4px;
+  width: 14px;
+}
+
+.mobile-menu-icon::before,
+.mobile-menu-icon::after {
+  background: currentColor;
+  border-radius: 999px;
+  content: "";
+  height: 2px;
+  width: 14px;
 }
 
 .page-shell {
@@ -2193,26 +2242,68 @@ button {
 
 @media (max-width: 640px) {
   .site-header {
-    align-items: flex-start;
+    align-items: stretch;
     flex-direction: column;
-    gap: 14px;
-    padding: 18px 20px;
+    gap: 10px;
+    min-height: auto;
+    padding: 12px 14px;
+  }
+
+  .header-main {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .brand {
+    font-size: 16px;
+    gap: 8px;
+  }
+
+  .brand-mark {
+    border-radius: 11px;
+    height: 31px;
+    width: 31px;
+  }
+
+  .mobile-menu-toggle {
+    display: inline-flex;
   }
 
   .nav {
-    flex-wrap: wrap;
+    display: grid;
+    gap: 8px;
+    grid-template-columns: 1fr;
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    pointer-events: none;
+    transform: translateY(-4px);
+    transition: max-height 220ms ease, opacity 180ms ease, transform 180ms ease;
     width: 100%;
+  }
+
+  .nav.open {
+    max-height: 240px;
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
   }
 
   .nav a,
   .nav .button,
   .nav .secondary-button {
     background: rgba(255, 255, 255, 0.055);
-    flex: 1 1 auto;
+    justify-content: center;
+    min-height: 42px;
+    width: 100%;
     text-align: center;
   }
 
   .nav .status-row {
+    display: grid;
+    gap: 8px;
     width: 100%;
   }
 

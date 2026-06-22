@@ -219,7 +219,7 @@ export function getAppKitCapabilities(): AppKitCapabilities {
     unifiedBalance: {
       available: status.unifiedBalanceReady,
       label: "Unified Balance",
-      description: "Coming next. Future FlowLink funding flows can prepare USDC from supported sources.",
+      description: "Coming next. Future Arclet funding flows can prepare USDC from supported sources.",
     },
   };
 }

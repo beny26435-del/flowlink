@@ -91,7 +91,7 @@ export function BridgeFlow({ initialAmount = "", initialDirection = "sepolia-to-
     let mounted = true;
     let cleanup: (() => void) | undefined;
 
-    void getWalletProvider(connector)
+    void getWalletProvider(connector, { connectedAddress: address })
       .then((provider) => {
         if (!mounted || !provider) return;
         void getCurrentWalletChainId(provider)
@@ -117,7 +117,7 @@ export function BridgeFlow({ initialAmount = "", initialDirection = "sepolia-to-
       mounted = false;
       cleanup?.();
     };
-  }, [connector, isConnected]);
+  }, [connector, isConnected, address]);
 
   function swapDirection() {
     const nextDirection: BridgeDirection = direction === "sepolia-to-arc" ? "arc-to-sepolia" : "sepolia-to-arc";
@@ -142,8 +142,8 @@ export function BridgeFlow({ initialAmount = "", initialDirection = "sepolia-to-
     setIsSwitchingWalletNetwork(true);
     setStatus("switching-network");
     try {
-      await switchOrAddWalletChain({ chain: getWalletChainTarget(sourceChain.id), connector });
-      setObservedChainId(await getCurrentWalletChainId(connector));
+      const nextChainId = await switchOrAddWalletChain({ chain: getWalletChainTarget(sourceChain.id), connector, connectedAddress: address });
+      setObservedChainId(nextChainId ?? (await getCurrentWalletChainId(connector, { connectedAddress: address })));
       setStatus("idle");
       setBridgeRunState("idle");
     } catch (caught) {
@@ -159,8 +159,8 @@ export function BridgeFlow({ initialAmount = "", initialDirection = "sepolia-to-
     setError("");
     setIsSwitchingWalletNetwork(true);
     try {
-      await switchOrAddWalletChain({ chain: getWalletChainTarget(destinationChain.id), connector });
-      setObservedChainId(await getCurrentWalletChainId(connector));
+      const nextChainId = await switchOrAddWalletChain({ chain: getWalletChainTarget(destinationChain.id), connector, connectedAddress: address });
+      setObservedChainId(nextChainId ?? (await getCurrentWalletChainId(connector, { connectedAddress: address })));
     } catch (caught) {
       setError(getWalletSwitchError(caught, destinationChain.name));
     } finally {
@@ -212,7 +212,7 @@ export function BridgeFlow({ initialAmount = "", initialDirection = "sepolia-to-
     setBridgeRunState("awaiting-wallet");
 
     try {
-      const provider = (await getWalletProvider(connector)) as AppKitProvider | undefined;
+      const provider = (await getWalletProvider(connector, { connectedAddress: address })) as AppKitProvider | undefined;
       if (!provider) throw new Error("Wallet provider not available.");
       setStatus("wallet-confirmation");
       setBridgeRunState("awaiting-wallet");
@@ -242,7 +242,7 @@ export function BridgeFlow({ initialAmount = "", initialDirection = "sepolia-to-
           <div>
             <span className="eyebrow">USDC Bridge</span>
             <h2>{getBridgeDirectionLabel(direction)}</h2>
-            <p className="bridge-subcopy">Bridge USDC between Sepolia and Arc. FlowLink checkout stays separate.</p>
+            <p className="bridge-subcopy">Bridge USDC between Sepolia and Arc. Arclet checkout stays separate.</p>
           </div>
           <span className={bridgeCapability.ok ? "bridge-appkit-badge good" : "bridge-appkit-badge warn"}>{bridgeCapability.ok ? "Arc App Kit" : "Setup needed"}</span>
         </div>

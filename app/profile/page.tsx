@@ -14,7 +14,7 @@ import { NetworkNotice } from "../components/NetworkNotice";
 import { PageHeader } from "../components/PageHeader";
 import { PageTransition } from "../components/PageTransition";
 import { WalletConnectButton } from "../components/WalletConnectButton";
-import { FLOWLINK_CONTRACT_MISSING_MESSAGE, flowLinkContractAddress, hasFlowLinkContractAddress } from "../config";
+import { FLOWLINK_CONTRACT_MISSING_MESSAGE, flowLinkContractAddress, hasArcletContractAddress } from "../config";
 import { normalizeProfile, type RawProfile } from "../lib/link";
 
 export default function ProfilePage() {
@@ -35,7 +35,7 @@ export default function ProfilePage() {
     abi: flowLinkV4Abi,
     functionName: "getProfileByAddress",
     args: address ? [address] : undefined,
-    query: { enabled: Boolean(hasFlowLinkContractAddress && address) },
+    query: { enabled: Boolean(hasArcletContractAddress && address) },
   });
 
   const profile = profileRead.data ? normalizeProfile(profileRead.data as RawProfile) : undefined;
@@ -45,7 +45,7 @@ export default function ProfilePage() {
     abi: flowLinkV4Abi,
     functionName: "getProfileTipStats",
     args: address ? [address] : undefined,
-    query: { enabled: Boolean(hasFlowLinkContractAddress && address && profile?.exists) },
+    query: { enabled: Boolean(hasArcletContractAddress && address && profile?.exists) },
   });
 
   const tipStats = tipStatsRead.data as readonly [bigint, bigint, bigint, boolean] | undefined;
@@ -71,7 +71,7 @@ export default function ProfilePage() {
   }, [address, normalizedUsername]);
 
   const canSubmit = Boolean(
-    hasFlowLinkContractAddress &&
+    hasArcletContractAddress &&
       isConnected &&
       address &&
       chainId === arcTestnet.id &&
@@ -127,12 +127,12 @@ export default function ProfilePage() {
     <PageTransition>
       <PageHeader
         eyebrow="Profile"
-        title="Your FlowLink profile"
+        title="Your Arclet profile"
         subtitle="Create one public profile for invoices, payment links, unlocks, group funding, and profile tips."
         actions={<WalletConnectButton />}
       />
       <NetworkNotice />
-      {!hasFlowLinkContractAddress && <div className="error">{FLOWLINK_CONTRACT_MISSING_MESSAGE}</div>}
+      {!hasArcletContractAddress && <div className="error">{FLOWLINK_CONTRACT_MISSING_MESSAGE}</div>}
 
       {!isConnected ? (
         <section className="empty-state">
@@ -238,7 +238,7 @@ export default function ProfilePage() {
           <aside className="preview-card">
             <div className="preview-header">
               <span className="badge good">Public profile</span>
-              <span className="badge">FlowLink</span>
+              <span className="badge">Arclet</span>
             </div>
             <ProfileAvatarPreview avatarUrl={avatarUrl} displayName={displayName} />
             <h2 className="preview-title">{displayName || "Your display name"}</h2>
@@ -248,7 +248,7 @@ export default function ProfilePage() {
             <div className="notice">
               Tip Jar: {tipsEnabled ? `Enabled${minimumTipAmount ? ` · Minimum ${minimumTipAmount} USDC` : " · No minimum"}` : "Disabled"}
             </div>
-            <p className="small">Listed FlowLinks will appear on this public profile.</p>
+            <p className="small">Listed Arclet links will appear on this public profile.</p>
           </aside>
         </section>
       )}
@@ -258,5 +258,5 @@ export default function ProfilePage() {
 
 function ProfileAvatarPreview({ avatarUrl, displayName }: { avatarUrl: string; displayName: string }) {
   if (avatarUrl) return <img className="profile-avatar preview-profile-avatar" src={avatarUrl} alt="" />;
-  return <div className="profile-avatar fallback-avatar preview-profile-avatar">{(displayName || "FL").slice(0, 2).toUpperCase()}</div>;
+  return <div className="profile-avatar fallback-avatar preview-profile-avatar">{(displayName || "AR").slice(0, 2).toUpperCase()}</div>;
 }

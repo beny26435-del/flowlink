@@ -8,7 +8,7 @@ import { arcTestnet } from "../../src/arc/chain";
 import { flowLinkV4Abi } from "../../src/flowlink-v4/abi";
 import type { LinkMode } from "../../src/flowlink-v4/types";
 import { buildExplorerAddressUrl, buildExplorerTxUrl, formatNativeUsdcAmount, parseNativeUsdcAmount } from "../../src/flowlink-v4/utils";
-import { FLOWLINK_CONTRACT_MISSING_MESSAGE, flowLinkContractAddress, hasFlowLinkContractAddress } from "../config";
+import { FLOWLINK_CONTRACT_MISSING_MESSAGE, flowLinkContractAddress, hasArcletContractAddress } from "../config";
 import { productText } from "../lib/displayText";
 import { formatDateTime, getGroupProgress, getModeText, normalizeLinkStatus, normalizePaymentLink, type RawLink } from "../lib/link";
 import { AddressDisplay } from "./AddressDisplay";
@@ -47,7 +47,7 @@ export function PayLinkView({ linkId, slug, routeKey }: PayLinkViewProps) {
 
   const slugMode = Boolean(slug);
   const validRoute = Boolean(slug || linkId);
-  const enabled = Boolean(hasFlowLinkContractAddress && flowLinkContractAddress && validRoute);
+  const enabled = Boolean(hasArcletContractAddress && flowLinkContractAddress && validRoute);
 
   const slugIdRead = useReadContract({
     address: flowLinkContractAddress,
@@ -214,10 +214,10 @@ export function PayLinkView({ linkId, slug, routeKey }: PayLinkViewProps) {
     }
   }
 
-  if (!hasFlowLinkContractAddress) {
+  if (!hasArcletContractAddress) {
     return (
       <PageTransition>
-        <InvalidState title="FlowLink unavailable" body={FLOWLINK_CONTRACT_MISSING_MESSAGE} />
+        <InvalidState title="Arclet unavailable" body={FLOWLINK_CONTRACT_MISSING_MESSAGE} />
       </PageTransition>
     );
   }
@@ -244,10 +244,10 @@ export function PayLinkView({ linkId, slug, routeKey }: PayLinkViewProps) {
       ) : readUnavailable ? (
         <InvalidState
           title="Switch back to Arc Testnet"
-          body="Switch back to Arc Testnet to view and pay this FlowLink. If the page still does not load, the Arc Testnet read may be temporarily unavailable."
+          body="Switch back to Arc Testnet to view and pay this Arclet. If the page still does not load, the Arc Testnet read may be temporarily unavailable."
         />
       ) : invalid || !link ? (
-        <InvalidState title="Payment page not found" body="This FlowLink payment page does not exist on the Arc Testnet contract." />
+        <InvalidState title="Payment page not found" body="This Arclet payment page does not exist on the Arc Testnet contract." />
       ) : (
         <section className="checkout-grid pay-checkout-grid">
           <motion.div className="section checkout-card" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }}>
@@ -532,7 +532,7 @@ function InvalidState({ title, body }: { title: string; body: string }) {
       <div className="empty-orb" />
       <h1 className="page-title">{title}</h1>
       <p className="page-subtitle">{body}</p>
-      <Button href="/create">Create a FlowLink</Button>
+      <Button href="/create">Create an Arclet link</Button>
     </section>
   );
 }

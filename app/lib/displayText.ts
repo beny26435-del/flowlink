@@ -18,8 +18,8 @@ const INTERNAL_VERSION_LABELS = [
 export function productText(value: string | undefined | null) {
   if (!value) return "";
 
-  return INTERNAL_VERSION_LABELS.reduce((text, pattern) => text.replace(pattern, "FlowLink"), value).replace(
-    /smoke-FlowLink/gi,
+  return INTERNAL_VERSION_LABELS.reduce((text, pattern) => text.replace(pattern, "Arclet"), value).replace(
+    /smoke-Arclet/gi,
     "smoke"
   );
 }
