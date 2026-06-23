@@ -5,5 +5,6 @@ export const DEPLOYMENT_TX_HASH = "0xd0b8d619533c1a706e660dd2fd6f06e6522ec269d64
 
 export const FLOWLINK_CONTRACT_MISSING_MESSAGE = "Arclet contract address is not configured.";
 
-export const flowLinkContractAddress = process.env.NEXT_PUBLIC_FLOWLINK_V4_CONTRACT_ADDRESS as Address | undefined;
+export const flowLinkContractAddress = (process.env.NEXT_PUBLIC_ARCLET_CONTRACT_ADDRESS ??
+  process.env.NEXT_PUBLIC_FLOWLINK_V4_CONTRACT_ADDRESS) as Address | undefined;
 export const hasArcletContractAddress = Boolean(flowLinkContractAddress);
