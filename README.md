@@ -1,8 +1,8 @@
-# FlowLink
+# Arclet
 
-FlowLink is a stablecoin checkout primitive for Arc. It lets users create payment links, invoices, unlock-after-payment links, group funding links, public payment URLs, creator profiles, and profile Tip Jars using native Arc USDC.
+Arclet is a stablecoin checkout primitive for Arc. It lets users create payment links, invoices, unlock-after-payment links, group funding links, public payment URLs, creator profiles, and profile Tip Jars using native Arc USDC.
 
-This repository includes a minimal demo frontend plus a clean contract, Foundry test suite, deployment script, Arc config, viem service layer, and a real Arc App Kit funding helper. The UI is intentionally simple and focused on creating, paying, and managing FlowLink payment links on Arc Testnet.
+This repository includes a minimal demo frontend plus a clean contract, Foundry test suite, deployment script, Arc config, viem service layer, and a real Arc App Kit funding helper. The UI is intentionally focused on creating, paying, and managing Arclet links on Arc Testnet.
 
 ## Why Arc?
 
@@ -19,19 +19,19 @@ Arc is an EVM-compatible L1 built for stablecoin-native financial apps. Arc uses
 - No database.
 - No ERC20 payment flow or App Kit Unified Balance payment flow yet.
 
-## v1 Payment Model
+## Native Arc USDC Payment Model
 
-FlowLink v1 uses `msg.value` native payments. On Arc, the native token is USDC, so the payer sends the exact payment amount as native Arc value and the contract forwards that value to the recipient.
+Arclet uses `msg.value` native payments. On Arc, the native token is USDC, so the payer sends the exact payment amount as native Arc value and the contract forwards that value to the recipient.
 
-This is not an ERC20 `transferFrom` flow. Do not mix native value amounts with ERC20 USDC assumptions in v1. The TypeScript helpers treat native value as 18-decimal wei-like units for contract calls unless Arc/App Kit integration later requires different display handling.
+This is not an ERC20 `transferFrom` flow. Do not mix native value amounts with ERC20 USDC assumptions. The TypeScript helpers treat native value as 18-decimal wei-like units for contract calls unless Arc/App Kit integration later requires different display handling.
 
-The multi-mode contract still uses native Arc USDC through `msg.value`. Arc App Kit is used around FlowLink as a funding and stablecoin operations helper. FlowLink handles checkout and receipts. Arc App Kit helps users prepare and move USDC.
+The multi-mode contract still uses native Arc USDC through `msg.value`. Arc App Kit is used around Arclet as a funding and stablecoin operations helper. Arclet handles checkout and receipts. Arc App Kit helps users prepare and move USDC.
 
-The current App Kit integration exposes same-chain Send USDC on Arc and bidirectional Bridge between Ethereum Sepolia and Arc Testnet through the connected browser wallet and the official Viem adapter. It does not replace the FlowLink contract payment. App Kit Bridge helps users move USDC before or after checkout; after bridging to Arc, the user still completes the FlowLink payment with native Arc USDC. Unified Balance remains future work until it is wired, tested, and represented honestly in the UI.
+The current App Kit integration exposes same-chain Send USDC on Arc and bidirectional Bridge between Ethereum Sepolia and Arc Testnet through the connected browser wallet and the official Viem adapter. It does not replace the Arclet contract payment. App Kit Bridge helps users move USDC before or after checkout; after bridging to Arc, the user still completes the Arclet payment with native Arc USDC. Unified Balance remains future work until it is wired, tested, and represented honestly in the UI.
 
 ## Product Modes
 
-FlowLink supports four payment link modes in the latest contract generation:
+Arclet supports four payment link modes in the latest contract generation:
 
 - Payment Link: exact native Arc USDC payment to a recipient.
 - Invoice: exact payment with client name, invoice number, and service title metadata.
@@ -48,11 +48,11 @@ Creator profiles include a profile-level Tip Jar. Tips are not link modes, do no
 
 ## Slugs, Profiles, And Listed Links
 
-`FlowLinkV3` adds real onchain payment slugs and creator profiles. Slugs are stored by the contract and resolved with `getLinkIdBySlug` or `getLinkBySlug`; they are not cosmetic encodings of numeric link IDs.
+Arclet adds real onchain payment slugs and creator profiles. Slugs are stored by the contract and resolved with `getLinkIdBySlug` or `getLinkBySlug`; they are not cosmetic encodings of numeric link IDs.
 
 Slug rules:
 
-- Required for every `FlowLinkV3` link.
+- Required for every profile/slug-enabled link.
 - 6 to 64 bytes.
 - Allowed characters: `A-Z`, `a-z`, `0-9`, hyphen, and underscore.
 - Globally unique across all links.
@@ -104,25 +104,25 @@ Existing Arc Testnet v1 deployment:
 
 - Contract address: `0x3dBdaDEcb8817B11D3D239ffaA881bcd7084D8b7`
 - Deployment transaction: `0x42e768b943404d2ce0c2ddaa27d1a898f0767643ad62008a91be1218d73c0fc6`
-- Arcscan: [FlowLink on Arcscan](https://testnet.arcscan.app/address/0x3dBdaDEcb8817B11D3D239ffaA881bcd7084D8b7)
+- Arcscan: [Arclet original contract on Arcscan](https://testnet.arcscan.app/address/0x3dBdaDEcb8817B11D3D239ffaA881bcd7084D8b7)
 
 New multi-mode contract:
 
 - Contract address: `0xca7C0E9305da6Af14260aDd60E59e1D75C38e42b`
 - Deployment transaction: `0xc7d3f9c3744d04bae9b87d6f41b2a673371385aa0b4e2e9f2d40f41bbd816bc4`
-- Arcscan: [FlowLink multi-mode contract on Arcscan](https://testnet.arcscan.app/address/0xca7C0E9305da6Af14260aDd60E59e1D75C38e42b)
+- Arcscan: [Arclet multi-mode contract on Arcscan](https://testnet.arcscan.app/address/0xca7C0E9305da6Af14260aDd60E59e1D75C38e42b)
 
 Profile and slug contract:
 
 - Contract address: `0x829177f771217FB2875095ff8668c27703828b8E`
 - Deployment transaction: `0x433956ad358da8a58e1e5ab2e5570d4dc6614d7d10619c59a9f31e51f87b9600`
-- Arcscan: [FlowLink profile and slug contract on Arcscan](https://testnet.arcscan.app/address/0x829177f771217FB2875095ff8668c27703828b8E)
+- Arcscan: [Arclet profile and slug contract on Arcscan](https://testnet.arcscan.app/address/0x829177f771217FB2875095ff8668c27703828b8E)
 
 Profile Tip Jar contract:
 
 - Contract address: `0x531f40744d9c675dE15C0326766955F5b1cbC938`
 - Deployment transaction: `0xd0b8d619533c1a706e660dd2fd6f06e6522ec269d6444277850942ca099b90bc`
-- Arcscan: [FlowLink Profile Tip Jar contract on Arcscan](https://testnet.arcscan.app/address/0x531f40744d9c675dE15C0326766955F5b1cbC938)
+- Arcscan: [Arclet Profile Tip Jar contract on Arcscan](https://testnet.arcscan.app/address/0x531f40744d9c675dE15C0326766955F5b1cbC938)
 
 ## Setup
 
@@ -242,7 +242,7 @@ NEXT_PUBLIC_APP_KIT_BRIDGE_ENABLED=true
 NEXT_PUBLIC_ETHEREUM_SEPOLIA_RPC_URL=https://11155111.rpc.thirdweb.com
 ```
 
-Use `src/flowlink/client.ts` to create, pay, cancel, and read links from a backend route, script, or future frontend. Read helpers can create an Arc Testnet public client from `ARC_TESTNET_RPC_URL`.
+Use `src/flowlink/client.ts` to create, pay, cancel, and read links from a backend route, script, or frontend. Read helpers can create an Arc Testnet public client from `ARC_TESTNET_RPC_URL`. The `FLOWLINK_*` environment variable names and `src/flowlink*` module names are kept for internal compatibility with the original contract/module naming.
 Use `src/flowlink-v2/client.ts` for the multi-mode contract.
 Use `src/flowlink-v3/client.ts` for profile, username, slug, listed-link, and public payment URL flows.
 Use `src/flowlink-v4/client.ts` for profile Tip Jar flows plus profile, username, slug, listed-link, and all previous payment link mode flows.
@@ -290,14 +290,14 @@ Payment links still use native Arc USDC through `msg.value`. The frontend does n
 
 ### Arc App Kit Funding Helper
 
-FlowLink includes a compact, collapsed App Kit funding center on public payment pages and public profiles. It says: “FlowLink handles checkout and receipts. Arc App Kit helps users prepare and move USDC.”
+Arclet includes a compact, collapsed App Kit funding center on public payment pages and public profiles. It says: “Arclet handles checkout and receipts. Arc App Kit helps users prepare and move USDC.”
 
 - Implemented: App Kit Send for same-chain USDC transfers on Arc Testnet using the connected browser wallet and `@circle-fin/adapter-viem-v2`.
 - Implemented: App Kit Bridge for USDC movement between Ethereum Sepolia and Arc Testnet using `kit.bridge(...)` with official `BridgeChain.Ethereum_Sepolia` and `BridgeChain.Arc_Testnet` enum values.
 - Bridge is available from `/bridge`. Pay pages and public profiles link to `/bridge` with an optional amount and a sanitized internal `returnTo` path.
 - Supported bridge routes: Ethereum Sepolia → Arc Testnet and Arc Testnet → Ethereum Sepolia.
-- Bridge funds the connected wallet on the destination network, not the FlowLink recipient.
-- After bridging, users return to checkout and manually complete the FlowLink payment with native Arc USDC. FlowLink does not auto-pay or call the contract after Bridge.
+- Bridge funds the connected wallet on the destination network, not the Arclet recipient.
+- After bridging, users return to checkout and manually complete the Arclet payment with native Arc USDC. Arclet does not auto-pay or call the contract after Bridge.
 - Bridge may involve source-chain approval, source-chain burn/transfer, attestation or bridge processing, and destination completion handled by App Kit.
 - The Bridge page shows a compact transaction stepper for wallet confirmation, source transaction, bridge processing, and destination completion. It only shows transaction links when App Kit returns real transaction hashes, and it does not claim completion unless the SDK reports completion.
 - Pay pages do not switch wallets to Ethereum Sepolia inline. The dedicated Bridge page owns source-chain switching so checkout pages stay focused on Arc Testnet contract reads and payments.
@@ -309,7 +309,7 @@ FlowLink includes a compact, collapsed App Kit funding center on public payment 
 - The Bridge page reads Sepolia and Arc balances with chain-specific public clients, so balances do not depend on the wallet currently being switched to that chain.
 - `NEXT_PUBLIC_ARC_TESTNET_USDC_ADDRESS` is optional future configuration for ERC20 or system-contract reads. The main Arc Testnet USDC balance uses native balance reads and does not require an ERC20 address.
 - Not yet implemented: App Kit Unified Balance. The UI labels it as coming next and does not fake success.
-- Checkout remains primary: paying a FlowLink still calls the FlowLink contract with native Arc USDC through `msg.value`.
+- Checkout remains primary: paying an Arclet link still calls the Arclet contract with native Arc USDC through `msg.value`.
 
 ## Smoke Test
 
