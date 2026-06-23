@@ -60,7 +60,7 @@ const unlockSlug = generateRandomSlug("unlock");
 const groupSlug = generateRandomSlug("group");
 const minimumTipAmount = parseNativeUsdcAmount(process.env.SMOKE_MINIMUM_TIP_USDC ?? "0.01");
 
-console.log("FlowLink profile and slug smoke test");
+console.log("Arclet profile and slug smoke test");
 console.log("Network: Arc Testnet");
 console.log(`Contract: ${contractAddress}`);
 console.log(`Contract URL: ${buildExplorerAddressUrl(contractAddress)}`);
@@ -70,7 +70,7 @@ console.log("Pay/contribute/tip/refund are disabled in this smoke script.");
 
 const profileTx = await upsertProfile(config, {
   username,
-  displayName: "FlowLink Smoke",
+  displayName: "Arclet Smoke",
   bio: "Created by scripts/smoke-v4.ts on Arc Testnet.",
   avatarUrl: "",
   tipsEnabled: true,
@@ -97,7 +97,7 @@ const created = [
       recipient,
       amount,
       deadline: 0n,
-      title: "FlowLink smoke payment",
+      title: "Arclet smoke payment",
       description: `Created by scripts/smoke-v4.ts at ${new Date().toISOString()}`,
       slug: paymentSlug,
       listed: true,
@@ -125,10 +125,10 @@ const created = [
       recipient,
       amount,
       deadline: 0n,
-      title: "FlowLink smoke unlock",
+      title: "Arclet smoke unlock",
       description: "Unlock smoke test",
       successMessage: "Unlocked by smoke test",
-      unlockUrl: "https://example.com/flowlink-smoke",
+      unlockUrl: "https://example.com/arclet-smoke",
       slug: unlockSlug,
       listed: true,
     }),
@@ -140,7 +140,7 @@ const created = [
       recipient,
       goalAmount: amount,
       deadline,
-      title: "FlowLink smoke group",
+      title: "Arclet smoke group",
       description: "Group smoke test",
       slug: groupSlug,
       listed: true,
@@ -183,9 +183,13 @@ async function createAndRead(label: string, fallbackSlug: string, txPromise: Pro
 }
 
 function readContractAddress(): Address {
-  const value = process.env.FLOWLINK_V4_CONTRACT_ADDRESS ?? process.env.NEXT_PUBLIC_FLOWLINK_V4_CONTRACT_ADDRESS;
+  const value =
+    process.env.ARCLET_CONTRACT_ADDRESS ??
+    process.env.NEXT_PUBLIC_ARCLET_CONTRACT_ADDRESS ??
+    process.env.FLOWLINK_V4_CONTRACT_ADDRESS ??
+    process.env.NEXT_PUBLIC_FLOWLINK_V4_CONTRACT_ADDRESS;
   if (!value || !isAddress(value)) {
-    throw new Error("Set FLOWLINK_V4_CONTRACT_ADDRESS or NEXT_PUBLIC_FLOWLINK_V4_CONTRACT_ADDRESS to the deployed FlowLink address.");
+    throw new Error("Set ARCLET_CONTRACT_ADDRESS or NEXT_PUBLIC_ARCLET_CONTRACT_ADDRESS to the deployed Arclet address.");
   }
 
   return getAddress(value);
@@ -194,7 +198,7 @@ function readContractAddress(): Address {
 function readPrivateKey(): Hex {
   const value = process.env.PRIVATE_KEY;
   if (!value) {
-    throw new Error("Set PRIVATE_KEY in .env to create smoke-test FlowLinks.");
+    throw new Error("Set PRIVATE_KEY in .env to create smoke-test Arclet links.");
   }
 
   return (value.startsWith("0x") ? value : `0x${value}`) as Hex;

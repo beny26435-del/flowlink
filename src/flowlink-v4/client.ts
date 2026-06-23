@@ -385,10 +385,12 @@ function requireWalletClient(config: FlowLinkV4Config): FlowLinkWalletClient {
 function resolveContractAddress(config: FlowLinkV4Config): Address {
   const address =
     config.contractAddress ??
+    process.env.ARCLET_CONTRACT_ADDRESS ??
+    process.env.NEXT_PUBLIC_ARCLET_CONTRACT_ADDRESS ??
     process.env.FLOWLINK_V4_CONTRACT_ADDRESS ??
     process.env.NEXT_PUBLIC_FLOWLINK_V4_CONTRACT_ADDRESS;
 
-  if (!address) throw new Error("FlowLink contract address is required.");
+  if (!address) throw new Error("Arclet contract address is required.");
   return address as Address;
 }
 

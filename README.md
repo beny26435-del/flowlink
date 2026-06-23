@@ -150,18 +150,13 @@ Set at least:
 ARC_TESTNET_RPC_URL=https://rpc.testnet.arc.network
 NEXT_PUBLIC_ARC_TESTNET_RPC_URL=https://rpc.testnet.arc.network
 PRIVATE_KEY=
-FLOWLINK_CONTRACT_ADDRESS=
-NEXT_PUBLIC_FLOWLINK_CONTRACT_ADDRESS=
-FLOWLINK_V2_CONTRACT_ADDRESS=
-NEXT_PUBLIC_FLOWLINK_V2_CONTRACT_ADDRESS=
-FLOWLINK_V3_CONTRACT_ADDRESS=
-NEXT_PUBLIC_FLOWLINK_V3_CONTRACT_ADDRESS=
-FLOWLINK_V4_CONTRACT_ADDRESS=
-NEXT_PUBLIC_FLOWLINK_V4_CONTRACT_ADDRESS=
+ARCLET_CONTRACT_ADDRESS=
+NEXT_PUBLIC_ARCLET_CONTRACT_ADDRESS=
 APP_KIT_KEY=
 NEXT_PUBLIC_APP_KIT_KEY=
 NEXT_PUBLIC_APP_KIT_BRIDGE_ENABLED=true
 NEXT_PUBLIC_ETHEREUM_SEPOLIA_RPC_URL=https://11155111.rpc.thirdweb.com
+NEXT_PUBLIC_SEPOLIA_USDC_ADDRESS=0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238
 SMOKE_RECIPIENT=
 SMOKE_AMOUNT_USDC=0.01
 SMOKE_BASE_URL=http://localhost:3000
@@ -183,71 +178,30 @@ The multi-mode test suite also covers invoices, unlock metadata, Group contribut
 
 ## Deploy
 
-Deploy to Arc Testnet:
+Deploy the current Arclet contract to Arc Testnet:
 
 ```bash
-forge script script/DeployFlowLink.s.sol:DeployFlowLink \
-  --rpc-url $ARC_TESTNET_RPC_URL \
-  --broadcast
+npm run deploy:arclet
 ```
 
-Deploy the multi-mode contract to Arc Testnet:
-
-```bash
-forge script script/DeployFlowLinkV2.s.sol:DeployFlowLinkV2 \
-  --rpc-url $ARC_TESTNET_RPC_URL \
-  --broadcast
-```
-
-Deploy the profile and slug contract to Arc Testnet:
-
-```bash
-forge script script/DeployFlowLinkV3.s.sol:DeployFlowLinkV3 \
-  --rpc-url $ARC_TESTNET_RPC_URL \
-  --broadcast
-```
-
-Deploy the profile Tip Jar contract to Arc Testnet:
-
-```bash
-forge script script/DeployFlowLinkV4.s.sol:DeployFlowLinkV4 \
-  --rpc-url $ARC_TESTNET_RPC_URL \
-  --broadcast
-```
-
-If verification is configured for the explorer, use:
-
-```bash
-forge script script/DeployFlowLink.s.sol:DeployFlowLink \
-  --rpc-url $ARC_TESTNET_RPC_URL \
-  --broadcast \
-  --verify
-```
+The current deployment script targets the Profile Tip Jar contract generation. Older deployment scripts are still kept in `script/` for reproducibility of previous testnet deployments.
 
 ## After Deploy
 
 Save the deployed contract address in `.env`:
 
 ```bash
-FLOWLINK_CONTRACT_ADDRESS=0x...
-NEXT_PUBLIC_FLOWLINK_CONTRACT_ADDRESS=0x...
-FLOWLINK_V2_CONTRACT_ADDRESS=0x...
-NEXT_PUBLIC_FLOWLINK_V2_CONTRACT_ADDRESS=0x...
-FLOWLINK_V3_CONTRACT_ADDRESS=0x...
-NEXT_PUBLIC_FLOWLINK_V3_CONTRACT_ADDRESS=0x...
-FLOWLINK_V4_CONTRACT_ADDRESS=0x...
-NEXT_PUBLIC_FLOWLINK_V4_CONTRACT_ADDRESS=0x...
+ARCLET_CONTRACT_ADDRESS=0x...
+NEXT_PUBLIC_ARCLET_CONTRACT_ADDRESS=0x...
 NEXT_PUBLIC_APP_KIT_KEY=
 NEXT_PUBLIC_APP_KIT_BRIDGE_ENABLED=true
 NEXT_PUBLIC_ETHEREUM_SEPOLIA_RPC_URL=https://11155111.rpc.thirdweb.com
+NEXT_PUBLIC_SEPOLIA_USDC_ADDRESS=0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238
 ```
 
-Use `src/flowlink/client.ts` to create, pay, cancel, and read links from a backend route, script, or frontend. Read helpers can create an Arc Testnet public client from `ARC_TESTNET_RPC_URL`. The `FLOWLINK_*` environment variable names and `src/flowlink*` module names are kept for internal compatibility with the original contract/module naming.
-Use `src/flowlink-v2/client.ts` for the multi-mode contract.
-Use `src/flowlink-v3/client.ts` for profile, username, slug, listed-link, and public payment URL flows.
-Use `src/flowlink-v4/client.ts` for profile Tip Jar flows plus profile, username, slug, listed-link, and all previous payment link mode flows.
+Use the current viem client module for profile Tip Jar flows plus profile, username, slug, listed-link, and all payment link mode flows. Older internal module paths are kept for contract-generation compatibility.
 
-For write operations, pass `walletClient` explicitly or provide `PRIVATE_KEY` through `FlowLinkConfig.privateKey` or `.env`. The client normalizes private keys with or without a `0x` prefix, but never hardcodes or stores keys.
+For write operations, pass `walletClient` explicitly or provide `PRIVATE_KEY` through the client config or `.env`. The client normalizes private keys with or without a `0x` prefix, but never hardcodes or stores keys.
 
 ## Frontend
 
@@ -262,14 +216,12 @@ Then open `http://localhost:3000`.
 Frontend wallet actions use the connected browser wallet through wagmi. The frontend only reads public environment variables:
 
 ```bash
-NEXT_PUBLIC_FLOWLINK_CONTRACT_ADDRESS=0x3dBdaDEcb8817B11D3D239ffaA881bcd7084D8b7
-NEXT_PUBLIC_FLOWLINK_V2_CONTRACT_ADDRESS=0x...
-NEXT_PUBLIC_FLOWLINK_V3_CONTRACT_ADDRESS=0x...
-NEXT_PUBLIC_FLOWLINK_V4_CONTRACT_ADDRESS=0x...
+NEXT_PUBLIC_ARCLET_CONTRACT_ADDRESS=0x531f40744d9c675dE15C0326766955F5b1cbC938
 NEXT_PUBLIC_ARC_TESTNET_RPC_URL=https://rpc.testnet.arc.network
 NEXT_PUBLIC_APP_KIT_KEY=
 NEXT_PUBLIC_APP_KIT_BRIDGE_ENABLED=true
 NEXT_PUBLIC_ETHEREUM_SEPOLIA_RPC_URL=https://11155111.rpc.thirdweb.com
+NEXT_PUBLIC_SEPOLIA_USDC_ADDRESS=0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238
 ```
 
 `NEXT_PUBLIC_APP_KIT_KEY` is only for browser-safe App Kit configuration. Keep any server-only App Kit secret in `APP_KIT_KEY`; the frontend does not read or expose it.
@@ -313,17 +265,15 @@ Arclet includes a compact, collapsed App Kit funding center on public payment pa
 
 ## Smoke Test
 
-Set `FLOWLINK_CONTRACT_ADDRESS` or `NEXT_PUBLIC_FLOWLINK_CONTRACT_ADDRESS` in `.env`, then run:
+Set `ARCLET_CONTRACT_ADDRESS` or `NEXT_PUBLIC_ARCLET_CONTRACT_ADDRESS` in `.env`, then run:
 
 ```bash
-npm run smoke:arc
+npm run smoke:arclet
 ```
 
-The smoke script creates a test payment link, reads it back, and prints the link ID, receipt/status fields, and Arcscan URLs. It does not pay the link by default. To send the exact native Arc USDC payment amount, explicitly pass `--pay`:
+The smoke script creates or updates a creator profile with tips enabled, creates one Payment Link, one Invoice, one Unlock, and one Group link with unique onchain slugs, reads each link back by slug, reads listed profile links and profile tip stats, and prints `/p/<slug>` and profile URLs. It does not pay, contribute, tip, or refund.
 
-```bash
-npm run smoke:arc -- --pay
-```
+Older smoke scripts for previous contract generations remain in `scripts/` for historical testnet deployments.
 
 Optional smoke settings:
 
@@ -333,51 +283,6 @@ SMOKE_AMOUNT_USDC=0.01
 ```
 
 If `SMOKE_RECIPIENT` is omitted, the script uses the signer address as the recipient.
-
-For the multi-mode contract, set `FLOWLINK_V2_CONTRACT_ADDRESS` or `NEXT_PUBLIC_FLOWLINK_V2_CONTRACT_ADDRESS`, then run:
-
-```bash
-npm run smoke:arc:v2
-```
-
-The multi-mode smoke script creates one Payment Link, one Invoice, one Unlock, and one Group link, then reads them back and prints link IDs and Arcscan URLs. It does not pay, contribute, or refund by default.
-
-Successful Arc Testnet smoke run:
-
-- Payment Link ID: `1`
-- Invoice Link ID: `2`
-- Unlock Link ID: `3`
-- Group Link ID: `4`
-
-For the profile and slug contract, set `FLOWLINK_V3_CONTRACT_ADDRESS` or `NEXT_PUBLIC_FLOWLINK_V3_CONTRACT_ADDRESS`, then run:
-
-```bash
-npm run smoke:arc:v3
-```
-
-The V3 smoke script creates or updates a creator profile, creates one Payment Link, one Invoice, one Unlock, and one Group link with unique onchain slugs, reads each link back by slug, reads listed profile links, and prints `/p/<slug>` and profile URLs. It does not pay, contribute, or refund.
-
-Successful profile and slug Arc Testnet smoke run:
-
-- Profile username: `smoke_mq0thjb7`
-- Profile URL: `http://localhost:3000/@smoke_mq0thjb7`
-- Payment Link ID: `1`
-- Payment slug: `pay_iBXfiKJC49`
-- Invoice Link ID: `2`
-- Invoice slug: `inv_KaMcwUDSqX`
-- Unlock Link ID: `3`
-- Unlock slug: `unlock_oYLkyRTF2R`
-- Group Link ID: `4`
-- Group slug: `group_MfWqNYQwnb`
-- Listed link count for creator: `4`
-
-For the profile Tip Jar contract, set `FLOWLINK_V4_CONTRACT_ADDRESS` or `NEXT_PUBLIC_FLOWLINK_V4_CONTRACT_ADDRESS`, then run:
-
-```bash
-npm run smoke:arc:v4
-```
-
-The V4 smoke script creates or updates a creator profile with tips enabled, creates one Payment Link, one Invoice, one Unlock, and one Group link with unique onchain slugs, reads each link back by slug, reads listed profile links and profile tip stats, and prints `/p/<slug>` and profile URLs. It does not pay, contribute, tip, or refund.
 
 Successful Profile Tip Jar Arc Testnet smoke run:
 
@@ -401,19 +306,19 @@ Successful Profile Tip Jar Arc Testnet smoke run:
 
 - `src/arc/chain.ts`: Arc Testnet constants and viem chain object.
 - `src/arc/appkit.ts`: real Arc App Kit initialization, config status, capabilities, Viem adapter setup, same-chain Send helper, and Ethereum Sepolia to Arc Testnet Bridge helper.
-- `src/flowlink/abi.ts`: typed `FlowLink` ABI.
+- `src/flowlink/abi.ts`: typed original ABI.
 - `src/flowlink/client.ts`: viem read/write functions.
 - `src/flowlink/types.ts`: shared integration types.
 - `src/flowlink/utils.ts`: native USDC amount formatting and explorer/payment URL helpers.
-- `src/flowlink-v2/abi.ts`: multi-mode `FlowLinkV2` ABI.
+- `src/flowlink-v2/abi.ts`: multi-mode ABI.
 - `src/flowlink-v2/client.ts`: viem read/write functions for all four modes.
 - `src/flowlink-v2/types.ts`: multi-mode integration types.
 - `src/flowlink-v2/utils.ts`: mode helpers plus native USDC utility re-exports.
-- `src/flowlink-v3/abi.ts`: profile and slug `FlowLinkV3` ABI.
+- `src/flowlink-v3/abi.ts`: profile and slug ABI.
 - `src/flowlink-v3/client.ts`: viem read/write functions for profiles, slugs, listed links, and all four modes.
 - `src/flowlink-v3/types.ts`: profile, slug, and multi-mode integration types.
 - `src/flowlink-v3/utils.ts`: slug, username, public URL, profile URL, mode, and native USDC helpers.
-- `src/flowlink-v4/abi.ts`: profile Tip Jar `FlowLinkV4` ABI.
+- `src/flowlink-v4/abi.ts`: profile Tip Jar ABI.
 - `src/flowlink-v4/client.ts`: viem read/write functions for profile tips plus profiles, slugs, listed links, and all previous modes.
 - `src/flowlink-v4/types.ts`: profile tip, slug, and multi-mode integration types.
 - `src/flowlink-v4/utils.ts`: slug, username, public URL, profile URL, mode, and native USDC helpers.
