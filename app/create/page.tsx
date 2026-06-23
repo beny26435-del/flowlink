@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { getAddress, isAddress, parseEventLogs, type Hex } from "viem";
+import { encodeFunctionData, getAddress, isAddress, parseEventLogs, type Hex } from "viem";
 import { useAccount, usePublicClient, useWriteContract } from "wagmi";
 import { Button } from "../components/Button";
 import { CopyButton } from "../components/CopyButton";
@@ -16,6 +16,7 @@ import { PaymentPreviewCard, type PreviewMode } from "../components/PaymentPrevi
 import { WalletConnectButton } from "../components/WalletConnectButton";
 import { FLOWLINK_CONTRACT_MISSING_MESSAGE, flowLinkContractAddress, hasArcletContractAddress } from "../config";
 import { arcTestnet } from "../../src/arc/chain";
+import { ARC_MEMO_CONTRACT_ADDRESS, arcMemoAbi, buildArcletCreateMemo, type ArcletMemo } from "../../src/arc/memos";
 import { flowLinkV4Abi } from "../../src/flowlink-v4/abi";
 import { buildPublicPayUrl, generateRandomSlug, parseNativeUsdcAmount, validateSlug } from "../../src/flowlink-v4/utils";
 
@@ -30,6 +31,12 @@ type CreatedLink = {
   txHash: Hex;
   paymentUrl: string;
   slug: string;
+  memo?: ArcletMemo;
+};
+
+type CreateCall = {
+  functionName: "createPaymentLink" | "createInvoiceLink" | "createUnlockLink" | "createGroupLink";
+  args: readonly unknown[];
 };
 
 const modes: Array<{ key: PreviewMode; label: string; helper: string }> = [
@@ -38,6 +45,68 @@ const modes: Array<{ key: PreviewMode; label: string; helper: string }> = [
   { key: "unlock", label: "Unlock", helper: "Reveal metadata after payment" },
   { key: "group", label: "Group", helper: "Contributors fund a goal" },
 ];
+
+function getCreateCall(input: {
+  mode: PreviewMode;
+  recipient: string;
+  amount: bigint;
+  deadline: bigint;
+  title: string;
+  description: string;
+  clientName: string;
+  invoiceNumber: string;
+  serviceTitle: string;
+  successMessage: string;
+  unlockUrl: string;
+  slug: string;
+  listed: boolean;
+}): CreateCall {
+  if (input.mode === "invoice") {
+    return {
+      functionName: "createInvoiceLink",
+      args: [
+        input.recipient,
+        input.amount,
+        input.deadline,
+        input.clientName,
+        input.invoiceNumber,
+        input.serviceTitle,
+        input.description,
+        input.slug,
+        input.listed,
+      ],
+    };
+  }
+
+  if (input.mode === "unlock") {
+    return {
+      functionName: "createUnlockLink",
+      args: [
+        input.recipient,
+        input.amount,
+        input.deadline,
+        input.title,
+        input.description,
+        input.successMessage,
+        input.unlockUrl,
+        input.slug,
+        input.listed,
+      ],
+    };
+  }
+
+  if (input.mode === "group") {
+    return {
+      functionName: "createGroupLink",
+      args: [input.recipient, input.amount, input.deadline, input.title, input.description, input.slug, input.listed],
+    };
+  }
+
+  return {
+    functionName: "createPaymentLink",
+    args: [input.recipient, input.amount, input.deadline, input.title, input.description, input.slug, input.listed],
+  };
+}
 
 export default function CreatePage() {
   const { address, chainId, isConnected } = useAccount();
@@ -56,6 +125,7 @@ export default function CreatePage() {
   const [unlockUrl, setUnlockUrl] = useState("");
   const [slug, setSlug] = useState("");
   const [listed, setListed] = useState(true);
+  const [memoReference, setMemoReference] = useState("");
   const [created, setCreated] = useState<CreatedLink | null>(null);
   const [error, setError] = useState("");
 
@@ -152,51 +222,57 @@ export default function CreatePage() {
         abi: flowLinkV4Abi,
         chainId: arcTestnet.id,
       } as const;
+      const createCall = getCreateCall({
+        mode,
+        recipient: getAddress(recipient),
+        amount: parsedAmount,
+        deadline: deadlineTimestamp,
+        title: title.trim(),
+        description: description.trim(),
+        clientName: clientName.trim(),
+        invoiceNumber: invoiceNumber.trim(),
+        serviceTitle: serviceTitle.trim(),
+        successMessage: successMessage.trim(),
+        unlockUrl: unlockUrl.trim(),
+        slug: slug.trim(),
+        listed,
+      });
+      const memo = memoReference.trim()
+        ? buildArcletCreateMemo({
+            mode,
+            slug,
+            creator: address,
+            recipient: getAddress(recipient),
+            amount: amount.trim(),
+            reference: memoReference,
+            invoiceNumber,
+            clientName,
+            serviceTitle,
+          })
+        : undefined;
 
-      const txHash =
-        mode === "invoice"
-          ? await writeContractAsync({
-              ...base,
-              functionName: "createInvoiceLink",
-              args: [
-                getAddress(recipient),
-                parsedAmount,
-                deadlineTimestamp,
-                clientName.trim(),
-                invoiceNumber.trim(),
-                serviceTitle.trim(),
-                description.trim(),
-                slug.trim(),
-                listed,
-              ],
-            })
-          : mode === "unlock"
-            ? await writeContractAsync({
-                ...base,
-                functionName: "createUnlockLink",
-                args: [
-                  getAddress(recipient),
-                  parsedAmount,
-                  deadlineTimestamp,
-                  title.trim(),
-                  description.trim(),
-                  successMessage.trim(),
-                  unlockUrl.trim(),
-                  slug.trim(),
-                  listed,
-                ],
-              })
-            : mode === "group"
-              ? await writeContractAsync({
-                  ...base,
-                  functionName: "createGroupLink",
-                  args: [getAddress(recipient), parsedAmount, deadlineTimestamp, title.trim(), description.trim(), slug.trim(), listed],
-                })
-                : await writeContractAsync({
-                    ...base,
-                    functionName: "createPaymentLink",
-                    args: [getAddress(recipient), parsedAmount, deadlineTimestamp, title.trim(), description.trim(), slug.trim(), listed],
-                  });
+      const txHash = memo
+        ? await writeContractAsync({
+            address: ARC_MEMO_CONTRACT_ADDRESS,
+            abi: arcMemoAbi,
+            chainId: arcTestnet.id,
+            functionName: "memo",
+            args: [
+              flowLinkContractAddress,
+              encodeFunctionData({
+                abi: flowLinkV4Abi,
+                functionName: createCall.functionName,
+                args: createCall.args,
+              }),
+              memo.memoId,
+              memo.memoData,
+            ],
+          })
+        : await writeContractAsync({
+            ...base,
+            functionName: createCall.functionName,
+            args: createCall.args,
+          });
       const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
       const logs = parseEventLogs({
         abi: flowLinkV4Abi,
@@ -219,7 +295,7 @@ export default function CreatePage() {
       if (!linkId) throw new Error("Created transaction confirmed, but link id was not found.");
 
       const paymentUrl = buildPublicPayUrl(window.location.origin, slug);
-      setCreated({ linkId, txHash, paymentUrl, slug: slug.trim() });
+      setCreated({ linkId, txHash, paymentUrl, slug: slug.trim(), memo });
     } catch (caught) {
       const message = caught instanceof Error ? caught.message : "Create Arclet failed.";
       setError(message.includes("SlugAlreadyTaken") ? "That payment URL is already taken. Try another one." : message);
@@ -297,6 +373,26 @@ export default function CreatePage() {
 
             <div className="notice">Public URL: {slugIsValid ? `/p/${slug}` : "Choose a valid payment URL"}</div>
 
+            <div className="section memo-builder-card">
+              <div className="preview-header">
+                <div>
+                  <span className="badge good">Arc Memo</span>
+                  <h2>Transaction memo</h2>
+                  <p className="muted">Attach a business reference to this create transaction for reconciliation and reporting.</p>
+                </div>
+              </div>
+              <Input
+                id="memoReference"
+                label="Business reference"
+                help="Optional. Example: INV-2026-0042, CLIENT-ACME, ORDER-1009. If set, Arclet creates this link through Arc's Memo contract."
+                value={memoReference}
+                maxLength={120}
+                placeholder={mode === "invoice" ? "INV-2026-0042" : "ORDER-1009"}
+                onChange={(event) => setMemoReference(event.target.value)}
+              />
+              <p className="small">Memos are attached to link creation only in this preview. Checkout payments still use native Arc USDC.</p>
+            </div>
+
             {error && <motion.div className="error" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>{error}</motion.div>}
 
             <Button type="submit" disabled={!canSubmit || isPending}>
@@ -335,10 +431,22 @@ export default function CreatePage() {
                       {created.paymentUrl}
                     </Link>
                   </div>
+                  {created.memo && (
+                    <>
+                      <div className="data-row">
+                        <span>Memo reference</span>
+                        <strong>{created.memo.payload.reference}</strong>
+                      </div>
+                      <div className="data-row">
+                        <span>Memo ID</span>
+                        <span className="mono">{created.memo.memoId}</span>
+                      </div>
+                    </>
+                  )}
                   <details className="technical-panel compact-technical">
                     <summary>
                       <span>Technical details</span>
-                      <span className="technical-summary-copy">Raw numeric payment page</span>
+                      <span className="technical-summary-copy">Raw payment page and memo data</span>
                     </summary>
                     <div className="data-list technical-data-list">
                       <div className="data-row">
@@ -351,6 +459,18 @@ export default function CreatePage() {
                           /pay/{created.linkId.toString()}
                         </Link>
                       </div>
+                      {created.memo && (
+                        <>
+                          <div className="data-row">
+                            <span>Memo contract</span>
+                            <span className="mono">{ARC_MEMO_CONTRACT_ADDRESS}</span>
+                          </div>
+                          <div className="data-row">
+                            <span>Memo payload</span>
+                            <span className="mono breakable">{JSON.stringify(created.memo.payload)}</span>
+                          </div>
+                        </>
+                      )}
                     </div>
                   </details>
                 </div>

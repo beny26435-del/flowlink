@@ -18,6 +18,10 @@ const features = [
     body: "Every paid link stores payer, timestamp, amount, and receipt ID onchain for durable proof.",
   },
   {
+    title: "Transaction memos",
+    body: "Attach Arc transaction memos to link creation for invoice IDs, customer references, and reconciliation workflows.",
+  },
+  {
     title: "No manual tx checking",
     body: "Creators can read dashboard state from the contract instead of chasing payment screenshots.",
   },
@@ -27,7 +31,7 @@ const features = [
   },
 ];
 
-const trust = ["Arc Testnet", "Native USDC", "Onchain receipts", "No database"];
+const trust = ["Arc Testnet", "Native USDC", "Onchain receipts", "Transaction memos", "No database"];
 
 export default function HomePage() {
   return (
@@ -43,7 +47,7 @@ export default function HomePage() {
             <span>for Arc</span>
           </motion.h1>
           <motion.p className="hero-copy" variants={fadeUp}>
-            Create shareable payment links, accept native Arc USDC, and generate onchain receipts in seconds.
+            Create shareable payment links, accept native Arc USDC, attach transaction memos, and generate onchain receipts in seconds.
           </motion.p>
           <motion.div className="actions" variants={fadeUp}>
             <Button href="/create">Create Link</Button>
@@ -86,6 +90,7 @@ export default function HomePage() {
           <div className="mock-terminal">
             <div className="mock-grid">
               <MockRow label="Amount due" value="125.00 native Arc USDC" />
+              <MockRow label="Memo ref" value="INV-2026-0042" />
               <MockRow label="Recipient" value="0x3dBd...D8b7" />
               <MockRow label="Status" value="Payable" />
               <MockRow label="Receipt ID" value="0x8f12...c9a4" />
